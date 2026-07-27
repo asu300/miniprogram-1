@@ -1,1 +1,0 @@
-shell: powershell -ExecutionPolicy Bypass -Command "$wshell=New-Object -ComObject wscript.shell;if($wshell.AppActivate('微信')){Start-Sleep 1;$wshell.SendKeys('123{ENTER}');echo 'OK:123 sent'}else{echo 'ERR:WeChat not found'}"
