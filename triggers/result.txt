@@ -1,20 +1,9 @@
 状态: 完成
-时间: 2026-07-27T17:08:21.984Z
+时间: 2026-07-27T17:12:12.338Z
 
-待处理文件: 19
+待处理文件: 17
 
 处理: 目视进近飞行管理方案.pdf
   空内容
-
-处理: AirDropManual-SOP03_B747-400标准操作程序_V1R7-Manual.pdf
-Warning: TT: undefined function: 3
-Warning: TT: undefined function: 3
-Warning: TT: undefined function: 3
-  186188 字 → 432 片段
-  ✅ 完成
-
-处理: KORD_Charts_21-05-2026.pdf
-  157385 字 → 359 片段
-  ✅ 完成
 
 全部完成
