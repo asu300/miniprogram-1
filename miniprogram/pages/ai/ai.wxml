@@ -1,6 +1,6 @@
 <view class="container">
   <!-- 顶部蓝色区域（覆盖到最顶） -->
-  <view style="background:#1a73e8;">
+  <view style="background:#1a73e8; width:100%; flex-shrink:0;">
     <!-- 状态栏 -->
     <view style="height:{{statusBarHeight}}px;"></view>
     <!-- 头部 -->
