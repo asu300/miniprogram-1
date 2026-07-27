@@ -341,9 +341,16 @@ exports.main = async (event) => {
       return { answer: '文档库中未找到与您问题相关的信息。请尝试换个问法，或确认问题涉及的内容是否已上传到知识库。' };
     }
 
-    // 3. 构建上下文
+    // 3. 先去重，再构建上下文（保证编号与前端显示一致）
+    const seenIds = new Set();
+    const uniqueChunks = chunks.filter(c => {
+      if (seenIds.has(c.fileID)) return false;
+      seenIds.add(c.fileID);
+      return true;
+    });
+
     const sources = [];
-    const context = chunks.map((c, i) => {
+    const context = uniqueChunks.map((c, i) => {
       sources.push({ name: c.fileName, fileId: c.fileID, category: c.category || '' });
       return `[来源 ${i + 1}] ${c.fileName}\n${c.content.slice(0, 1000)}`;
     }).join('\n\n---\n\n');
@@ -351,22 +358,14 @@ exports.main = async (event) => {
     // 4. 调用 DeepSeek
     let answer = await callDeepSeek(query, context);
 
-    // 5. 去重来源
-    const seen = new Set();
-    const uniqueSources = sources.filter(s => {
-      if (seen.has(s.fileId)) return false;
-      seen.add(s.fileId);
-      return true;
-    });
-
-    // 6. 验证引用编号：移除越界的 [N]
-    const maxN = uniqueSources.length;
+    // 5. 验证引用编号：移除越界的 [N]
+    const maxN = sources.length;
     answer = answer.replace(/\[(\d+)\]/g, (match, n) => {
       const idx = parseInt(n, 10);
       return (idx >= 1 && idx <= maxN) ? match : '';
     });
 
-    return { answer, sources: uniqueSources };
+    return { answer, sources };
   } catch (err) {
     console.error('[RAG 错误]', err.message);
     return { error: 'AI 服务暂不可用，请稍后再试' };
