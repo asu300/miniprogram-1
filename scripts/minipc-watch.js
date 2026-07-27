@@ -37,15 +37,29 @@ async function main() {
   const cmd = fs.readFileSync(RUN_FILE, 'utf8').trim();
   console.log('[看门狗] 指令:', cmd);
 
-  if (cmd === 'process-pending') {
-    // 3. 执行处理
-    console.log('[看门狗] 开始处理...');
-    const result = run('node scripts/process-pending.js');
-    console.log(result);
+  let result = '';
 
-    // 4. 写结果
-    fs.writeFileSync(RESULT_FILE, `状态: 完成\n时间: ${new Date().toISOString()}\n\n${result}`);
+  if (cmd === 'process-pending') {
+    console.log('[看门狗] 开始处理...');
+    result = run('node scripts/process-pending.js');
+    console.log(result);
+  } else if (cmd.startsWith('exec:')) {
+    const script = cmd.slice(5).trim();
+    console.log('[看门狗] 执行脚本:', script);
+    result = run(script);
+    console.log(result);
+  } else if (cmd.startsWith('shell:')) {
+    const shellCmd = cmd.slice(6).trim();
+    console.log('[看门狗] 执行命令:', shellCmd);
+    result = run(shellCmd);
+    console.log(result);
+  } else {
+    result = `未知指令: ${cmd}`;
+    console.log(result);
   }
+
+  // 4. 写结果
+  fs.writeFileSync(RESULT_FILE, `状态: 完成\n时间: ${new Date().toISOString()}\n\n${result}`);
 
   // 5. 删除指令，推回结果
   fs.unlinkSync(RUN_FILE);
