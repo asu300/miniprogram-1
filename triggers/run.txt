@@ -1,0 +1,1 @@
+wechat:主机，Mini PC这边小红书任务已全停。AI知识库看门狗已就绪(C:\docproc，每5分钟扫triggers/run.txt)。你可以继续小程序那个任务了。
