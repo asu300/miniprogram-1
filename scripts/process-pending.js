@@ -11,11 +11,12 @@ const mammoth = require('mammoth');
 const pdfParse = require('pdf-parse');
 
 const CONFIG = {
-  secretId: 'AKIDOzPbZAg06ynRtHVUXWP6h7kCRZjiV4Wu',
-  secretKey: 'DLPOBj3MWbcXX6TM6eyEI7h3GHAsLZpu',
-  envId: 'cloud1-3ggl1ttiaa22fb3e',
+  secretId: process.env.TCB_SECRET_ID || 'AKIDOzPbZAg06ynRtHVUXWP6h7kCRZjiV4Wu',
+  secretKey: process.env.TCB_SECRET_KEY || 'DLPOBj3MWbcXX6TM6eyEI7h3GHAsLZpu',
+  envId: process.env.TCB_ENV_ID || 'cloud1-3ggl1ttiaa22fb3e',
   chunkSize: 500,
   chunkOverlap: 50,
+  tmpDir: process.env.TMPDIR || process.env.TEMP || 'C:/temp',
 };
 
 async function main() {
@@ -39,7 +40,7 @@ async function main() {
 
   console.log(`待处理文件: ${Object.keys(files).length}`);
 
-  if (!fs.existsSync('/tmp/docproc')) fs.mkdirSync('/tmp/docproc', { recursive: true });
+  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
 
   for (const [fileName, fileID] of Object.entries(files)) {
     const ext = path.extname(fileName).toLowerCase().replace('.', '');
@@ -48,7 +49,7 @@ async function main() {
     console.log(`\n处理: ${fileName}`);
 
     // 下载
-    const tmp = path.join('/tmp/docproc', fileName);
+    const tmp = path.join(tmpDir, fileName);
     try {
       const res = await app.storage.downloadFile({ fileID, filePath: tmp });
       if (!res || !fs.existsSync(tmp)) { console.log(`  下载失败`); continue; }
