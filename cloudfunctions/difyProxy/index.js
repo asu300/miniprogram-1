@@ -20,7 +20,7 @@ const https = require('https');
 // ===== 配置 =====
 const DEEPSEEK_API_KEY = 'sk-f27ac80444214044a1c2a59a2708ca35';
 const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
-const MAX_CHUNKS = 12;                // 最多取多少个相关片段
+const MAX_CHUNKS = 20;                // 最多取多少个相关片段
 const CHUNK_MATCH_THRESHOLD = 1;      // 至少匹配几个关键词（≥1）
 const SEARCH_LIMIT = 20;              // 每关键词取多少片段
 const TIMEOUT = 20000;                // DeepSeek 请求超时 (ms)
@@ -303,7 +303,9 @@ ${catDesc}
 5. 如果问题提到"最近""最新"等，优先引用创建时间较新的文档
 6. 如果问题涉及某个分类（如飞行部宣贯），优先引用该分类下的文档
 7. 用中文回答
-8. 回答应简洁、准确、专业`;
+8. 如果用户问"XX分类有哪些""有什么内容"等，不要只列文件名，要阅读文件内容后总结各文件的核心要点
+9. 用中文回答
+10. 回答应简洁、准确、专业`;
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -314,7 +316,7 @@ ${catDesc}
     model: 'deepseek-v4-flash',
     messages,
     temperature: 0.1,
-    max_tokens: 1024,
+    max_tokens: 2048,
     stream: false,
   });
 
