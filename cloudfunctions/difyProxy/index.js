@@ -64,6 +64,11 @@ function extractKeywords(text) {
     if (w.length >= 2) add(w);
   }
 
+  // 1b. Numbers (e.g. "747", "737")
+  for (const w of text.match(/\d{3,}/g) || []) {
+    add(w);
+  }
+
   // 2. Chinese — keep original phrases (2+ chars)
   const chineseChars = text.match(/[一-鿿]/g) || [];
   const rawChinese = chineseChars.join('');
