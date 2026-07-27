@@ -114,11 +114,27 @@ Page({
   // 点击参考文档 → 直接预览文件
   openSource(e) {
     const { fileid, name } = e.currentTarget.dataset;
-    if (!fileid) {
-      wx.showToast({ title: '文件 ID 不可用', icon: 'none' });
+    if (fileid) {
+      this.previewFile(fileid, name);
       return;
     }
 
+    // fileId 为空时从数据库按文件名查找
+    wx.showLoading({ title: '查找文件中...' });
+    wx.cloud.database().collection('files').where({ name }).limit(1).get().then(res => {
+      wx.hideLoading();
+      if (res.data.length && res.data[0].fileID) {
+        this.previewFile(res.data[0].fileID, name);
+      } else {
+        wx.showToast({ title: '未找到文件', icon: 'none' });
+      }
+    }).catch(() => {
+      wx.hideLoading();
+      wx.showToast({ title: '查找失败', icon: 'none' });
+    });
+  },
+
+  previewFile(fileid, name) {
     wx.showLoading({ title: '打开文件中...' });
     const ext = (name || '').split('.').pop().toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext);

@@ -139,6 +139,20 @@ async function searchChunks(keywords) {
   return ranked.map(item => item.doc);
 }
 
+// ─── 补全缺失的 fileID ─────────────────────────────────────────────
+
+async function fillFileIds(chunks) {
+  const needLookup = chunks.filter(c => !c.fileID);
+  if (!needLookup.length) return;
+
+  for (const c of needLookup) {
+    try {
+      const res = await db.collection('files').where({ name: c.fileName }).limit(1).get();
+      if (res.data.length) c.fileID = res.data[0].fileID;
+    } catch (_) {}
+  }
+}
+
 // ─── DeepSeek API ────────────────────────────────────────────────
 
 function callDeepSeek(query, context) {
@@ -232,6 +246,9 @@ exports.main = async (event) => {
     // 2. 搜索文档片段
     const chunks = await searchChunks(keywords);
     console.log(`  找到 ${chunks.length} 个相关片段`);
+
+    // 补全缺失的 fileID
+    await fillFileIds(chunks);
 
     if (chunks.length === 0) {
       return { answer: '文档库中未找到与您问题相关的信息。请尝试换个问法，或确认问题涉及的内容是否已上传到知识库。' };
