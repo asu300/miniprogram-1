@@ -1,5 +1,5 @@
 状态: 完成
-时间: 2026-07-27T14:39:08.949Z
+时间: 2026-07-27T14:44:08.855Z
 
 待处理文件: 34
 
@@ -9,6 +9,3 @@
 处理: AirDropManual-B747飞行机组操作手册_V3R5-Manual.pdf
 Warning: TT: undefined function: 32
   748874 字 → 1727 片段
-  ✅ 完成
-
-处理: AirDropManual-FCTM_B747机组训练手册_V2R1-Manual.pdf
