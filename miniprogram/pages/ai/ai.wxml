@@ -28,15 +28,8 @@
 
         <!-- AI 回答 -->
         <view wx:else class="bubble bubble-assistant {{item.isError ? 'bubble-error' : ''}}">
-          <!-- 分段渲染（文字 + 可点击引用 [N]） -->
-          <block wx:if="{{item.segments}}">
-            <text class="bubble-text" selectable="{{true}}">
-              <block wx:for="{{item.segments}}" wx:key="index">
-                <text wx:if="{{item.t === 'cite'}}" class="cite-num" data-idx="{{item.v}}" data-msg-index="{{msgIdx}}" bindtap="onCiteTap">[{{item.v}}]</text>
-                <text wx:else>{{item.v}}</text>
-              </block>
-            </text>
-          </block>
+          <!-- AI 回答（纯文本支持长按复制） -->
+          <text wx:if="{{item.segments}}" class="bubble-text" selectable="{{true}}">{{item.content}}</text>
           <text wx:else class="bubble-text" selectable="{{true}}">{{item.content}}</text>
 
           <!-- 参考文档列表 -->
