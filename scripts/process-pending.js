@@ -48,11 +48,20 @@ async function main() {
 
     console.log(`\n处理: ${fileName}`);
 
-    // 下载
+    // 下载（通过 getTempFileURL + HTTP）
     const tmp = path.join(CONFIG.tmpDir, fileName);
     try {
-      const res = await app.storage.downloadFile({ fileID, filePath: tmp });
-      if (!res || !fs.existsSync(tmp)) { console.log(`  下载失败`); continue; }
+      const urlResult = await app.getTempFileURL({ fileList: [fileID] });
+      const downloadUrl = urlResult.fileList[0].tempFileURL;
+      if (!downloadUrl) { console.log(`  获取下载链接失败`); continue; }
+      await new Promise((resolve, reject) => {
+        const file = fs.createWriteStream(tmp);
+        require('https').get(downloadUrl, res => {
+          res.pipe(file);
+          file.on('finish', resolve);
+        }).on('error', reject);
+      });
+      if (!fs.existsSync(tmp)) { console.log(`  下载失败`); continue; }
     } catch (e) { console.log(`  下载失败: ${e.message}`); continue; }
 
     // 提取
