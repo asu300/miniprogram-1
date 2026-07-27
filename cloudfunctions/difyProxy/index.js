@@ -25,6 +25,23 @@ const CHUNK_MATCH_THRESHOLD = 1;      // 至少匹配几个关键词（≥1）
 const SEARCH_LIMIT = 20;              // 每关键词取多少片段
 const TIMEOUT = 20000;                // DeepSeek 请求超时 (ms)
 
+// ─── 分类名称映射 ──────────────────────────────────────────────
+const CATEGORY_NAMES = {
+  recent_announcement: '飞行部重要宣贯（近期通知、风险提示、安全通告）',
+  zhengzhou_jinai: '郑州→金奈航线文件',
+  zhengzhou_delhi: '郑州→德里航线文件',
+  zhengzhou_liege: '郑州→列日航线文件',
+  zhengzhou_budapest: '郑州→布达佩斯航线文件',
+  zhengzhou_bangalore: '郑州→班加罗尔航线文件',
+  zhengzhou_north_america: '郑州→北美航线文件',
+  b747_ops: 'B747 手册',
+  other_important: '其它重要资料',
+  media_resources: '音视频资料',
+};
+
+// ─── 时间关键词（命中时按时间排序）────────────────────
+const TIME_WORDS = ['最近', '最新', '近期', '新发布', '新', '近期内', 'recent', 'latest', 'new', '近'];
+
 // ─── 航空领域词典（最大正向匹配分词用）────────────────────────
 const AV_DICT = [
   '波音', '空客', '747', '737', '767', '777', '787',
@@ -245,15 +262,21 @@ async function fillFileIds(chunks) {
 // ─── DeepSeek API ────────────────────────────────────────────────
 
 function callDeepSeek(query, context) {
+  const catDesc = Object.entries(CATEGORY_NAMES).map(([k, v]) => `- ${k}: ${v}`).join('\n');
   const systemPrompt = `你是一个航空运营文件助手。根据提供的文档内容回答问题。
+
+文档分类说明：
+${catDesc}
 
 规则：
 1. 仅基于上方"相关文档内容"回答，不要编造信息
 2. 如果文档内容不足以回答问题，请明确说"文档中没有相关信息"
 3. 引用格式：在引用处用 [N] 标记，N 为来源编号（例如 "根据[1]，飞行前需..."）。N 必须来自上面提供的来源编号
 4. 禁止引用未在上方文档列表中出现的文件
-5. 用中文回答
-6. 回答应简洁、准确、专业`;
+5. 如果问题提到"最近""最新"等，优先引用创建时间较新的文档
+6. 如果问题涉及某个分类（如飞行部宣贯），优先引用该分类下的文档
+7. 用中文回答
+8. 回答应简洁、准确、专业`;
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -341,6 +364,17 @@ exports.main = async (event) => {
       return { answer: '文档库中未找到与您问题相关的信息。请尝试换个问法，或确认问题涉及的内容是否已上传到知识库。' };
     }
 
+    // 时间关键词命中时，按 createTime 降序排列（最新的在前）
+    const isTimeQuery = TIME_WORDS.some(tw => query.includes(tw));
+    if (isTimeQuery) {
+      chunks.sort((a, b) => {
+        const tA = a.createTime ? new Date(a.createTime).getTime() : 0;
+        const tB = b.createTime ? new Date(b.createTime).getTime() : 0;
+        return tB - tA;
+      });
+      console.log(`  ⏱ 时间查询，按时间排序`);
+    }
+
     // 3. 先去重，再构建上下文（保证编号与前端显示一致）
     const seenIds = new Set();
     const uniqueChunks = chunks.filter(c => {
@@ -351,8 +385,9 @@ exports.main = async (event) => {
 
     const sources = [];
     const context = uniqueChunks.map((c, i) => {
+      const catName = CATEGORY_NAMES[c.category] || c.category || '未分类';
       sources.push({ name: c.fileName, fileId: c.fileID, category: c.category || '' });
-      return `[来源 ${i + 1}] ${c.fileName}\n${c.content.slice(0, 1000)}`;
+      return `[来源 ${i + 1}] ${c.fileName}（分类：${catName}）\n${c.content.slice(0, 1000)}`;
     }).join('\n\n---\n\n');
 
     // 4. 调用 DeepSeek
