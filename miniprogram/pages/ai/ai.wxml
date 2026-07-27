@@ -1,15 +1,18 @@
 <view class="container">
-  <!-- 状态栏 -->
-  <view style="height:{{statusBarHeight}}px; background:#1a73e8;"></view>
-  <!-- 头部 -->
-  <view class="header">
-    <view class="header-left" bindtap="goBack">
-      <text class="back-arrow">‹</text>
-      <text class="back-text">返回</text>
-    </view>
-    <text class="header-title">AI 知识库</text>
-    <view class="header-right" bindtap="clearChat">
-      <text class="clear-btn">清空</text>
+  <!-- 顶部蓝色区域（覆盖到最顶） -->
+  <view style="background:#1a73e8; width:100%; flex-shrink:0;">
+    <!-- 状态栏 -->
+    <view style="height:{{statusBarHeight}}px;"></view>
+    <!-- 头部 -->
+    <view class="header">
+      <view class="header-left" bindtap="goBack">
+        <text class="back-arrow">‹</text>
+        <text class="back-text">返回</text>
+      </view>
+      <text class="header-title">AI 知识库</text>
+      <view class="header-right" bindtap="clearChat">
+        <text class="clear-btn">清空</text>
+      </view>
     </view>
   </view>
 
@@ -20,21 +23,21 @@
 
         <!-- 用户消息 -->
         <view wx:if="{{item.role === 'user'}}" class="bubble bubble-user">
-          <text class="bubble-text">{{item.content}}</text>
+          <text class="bubble-text" selectable="{{true}}">{{item.content}}</text>
         </view>
 
         <!-- AI 回答 -->
         <view wx:else class="bubble bubble-assistant {{item.isError ? 'bubble-error' : ''}}">
           <!-- 分段渲染（文字 + 可点击引用 [N]） -->
           <block wx:if="{{item.segments}}">
-            <text class="bubble-text">
+            <text class="bubble-text" selectable="{{true}}">
               <block wx:for="{{item.segments}}" wx:key="index">
                 <text wx:if="{{item.t === 'cite'}}" class="cite-num" data-idx="{{item.v}}" data-msg-index="{{msgIdx}}" bindtap="onCiteTap">[{{item.v}}]</text>
                 <text wx:else>{{item.v}}</text>
               </block>
             </text>
           </block>
-          <text wx:else class="bubble-text">{{item.content}}</text>
+          <text wx:else class="bubble-text" selectable="{{true}}">{{item.content}}</text>
 
           <!-- 参考文档列表 -->
           <view wx:if="{{item.sources && item.sources.length > 0}}" class="source-section" id="source-{{msgIdx}}">
