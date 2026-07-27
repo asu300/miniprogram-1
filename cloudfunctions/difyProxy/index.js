@@ -20,9 +20,9 @@ const https = require('https');
 // ===== 配置 =====
 const DEEPSEEK_API_KEY = 'sk-f27ac80444214044a1c2a59a2708ca35';
 const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
-const MAX_CHUNKS = 12;                // 最多取多少个相关片段
+const MAX_CHUNKS = 20;                // 最多取多少个相关片段
 const CHUNK_MATCH_THRESHOLD = 1;      // 至少匹配几个关键词（≥1）
-const SEARCH_LIMIT = 20;              // 每关键词取多少片段
+const SEARCH_LIMIT = 30;              // 每关键词取多少片段（分类搜索取 3x = 90）
 const TIMEOUT = 20000;                // DeepSeek 请求超时 (ms)
 
 // ─── 分类名称映射 ──────────────────────────────────────────────
@@ -233,18 +233,24 @@ async function searchChunks(keywords) {
     const catKey = CATEGORY_ALIASES[kw];
 
     try {
-      const conditions = [
-        { content: regExp },
-        { fileName: regExp },
-      ];
-      // 如果关键词匹配某个分类别名，也按分类代码搜
-      if (catKey) conditions.push({ category: catKey });
+      let results;
 
-      const res = await db.collection('doc_chunks')
-        .where(_.or(conditions))
-        .limit(SEARCH_LIMIT)
-        .get();
-      return res.data || [];
+      if (catKey) {
+        // 分类搜索：直接搜该分类下的所有文档（不限制内容），取更大量的片段
+        results = await db.collection('doc_chunks')
+          .where({ category: catKey })
+          .limit(SEARCH_LIMIT * 3)
+          .get();
+      } else {
+        // 内容/文件名搜索
+        const res = await db.collection('doc_chunks')
+          .where(_.or([{ content: regExp }, { fileName: regExp }]))
+          .limit(SEARCH_LIMIT)
+          .get();
+        results = res;
+      }
+
+      return results.data || [];
     } catch (e) {
       console.error(`[关键词搜索错误] ${kw}:`, e.message);
       return [];
@@ -303,7 +309,9 @@ ${catDesc}
 5. 如果问题提到"最近""最新"等，优先引用创建时间较新的文档
 6. 如果问题涉及某个分类（如飞行部宣贯），优先引用该分类下的文档
 7. 用中文回答
-8. 回答应简洁、准确、专业`;
+8. 如果用户问"XX分类有哪些""有什么内容"等，不要只列文件名，要阅读文件内容后总结各文件的核心要点
+9. 用中文回答
+10. 回答应简洁、准确、专业`;
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -314,7 +322,7 @@ ${catDesc}
     model: 'deepseek-v4-flash',
     messages,
     temperature: 0.1,
-    max_tokens: 1024,
+    max_tokens: 2048,
     stream: false,
   });
 
@@ -427,7 +435,13 @@ exports.main = async (event) => {
       return (idx >= 1 && idx <= maxN) ? match : '';
     });
 
-    return { answer, sources };
+    // 6. 只保留 AI 实际引用的来源（出现在 [N] 中的编号）
+    const citedNums = new Set(
+      [...answer.matchAll(/\[(\d+)\]/g)].map(m => parseInt(m[1], 10))
+    );
+    const filteredSources = sources.filter((_, i) => citedNums.has(i + 1));
+
+    return { answer, sources: filteredSources.length ? filteredSources : sources };
   } catch (err) {
     console.error('[RAG 错误]', err.message);
     return { error: 'AI 服务暂不可用，请稍后再试' };
