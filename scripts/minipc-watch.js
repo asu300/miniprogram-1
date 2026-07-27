@@ -74,6 +74,12 @@ async function main() {
     console.log('[看门狗] 执行命令:', shellCmd);
     result = run(shellCmd);
     console.log(result);
+  } else if (cmd.startsWith('wechat:')) {
+    const msg = cmd.slice(7).trim();
+    console.log('[看门狗] 发送微信消息:', msg);
+    const psCmd = `powershell -ExecutionPolicy Bypass -Command "$wshell=New-Object -ComObject wscript.shell;if($wshell.AppActivate('微信')){Start-Sleep 1;$wshell.SendKeys('${msg}{ENTER}');echo 'OK'}else{echo 'ERR:WeChat window not found'}"`;
+    result = run(psCmd);
+    console.log(result);
   } else {
     result = `未知指令: ${cmd}`;
     console.log(result);
