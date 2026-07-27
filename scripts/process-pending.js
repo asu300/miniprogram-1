@@ -72,13 +72,15 @@ async function main() {
       } else if (ext === 'docx') {
         text = (await mammoth.extractRawText({ path: tmp })).value || '';
       } else if (ext === 'doc') {
-        // Old .doc → antiword (already on Mini PC), fallback to mammoth
+        // Old .doc → Python olefile script (handles WPS), fallback mammoth
         try {
-          text = require('child_process').execSync(`antiword -m UTF-8.txt "${tmp}"`, {encoding:'utf8', timeout:30000}) || '';
+          text = require('child_process').execSync(
+            `"C:/Program Files/Python314/python.exe" "${__dirname}/extract_doc.py" "${tmp}"`,
+            {encoding:'utf8', timeout:30000}
+          ) || '';
         } catch (_) { text = ''; }
         if (!text.trim()) {
-          try { text = (await mammoth.extractRawText({ path: tmp })).value || ''; }
-          catch (_) { text = ''; }
+          try { text = (await mammoth.extractRawText({ path: tmp })).value || ''; } catch (_) {}
         }
       }
     } catch (e) { console.log(`  提取失败: ${e.message}`); continue; }
