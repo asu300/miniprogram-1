@@ -1,7 +1,7 @@
 状态: 完成
-时间: 2026-07-27T13:44:13.585Z
+时间: 2026-07-27T13:49:10.207Z
 
-待处理文件: 36
+待处理文件: 35
 
 处理: 目视进近飞行管理方案.pdf
   空内容
@@ -9,14 +9,6 @@
 处理: 大型飞机公共航空运输承运人运行合格审定规则.pdf
 Warning: Required "glyf" table is not found -- trying to recover.
   187494 字 → 428 片段
-  ✅ 完成
-
-处理: 中国民用航空规章第121部运行规范内容(3).pdf
-Warning: TT: undefined function: 32
-Warning: TT: undefined function: 3
-Warning: TT: undefined function: 32
-Warning: TT: undefined function: 3
-  84896 字 → 197 片段
   ✅ 完成
 
 处理: AirDropManual-B747飞行机组操作手册_V3R5-Manual.pdf
