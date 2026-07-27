@@ -435,7 +435,13 @@ exports.main = async (event) => {
       return (idx >= 1 && idx <= maxN) ? match : '';
     });
 
-    return { answer, sources };
+    // 6. 只保留 AI 实际引用的来源（出现在 [N] 中的编号）
+    const citedNums = new Set(
+      [...answer.matchAll(/\[(\d+)\]/g)].map(m => parseInt(m[1], 10))
+    );
+    const filteredSources = sources.filter((_, i) => citedNums.has(i + 1));
+
+    return { answer, sources: filteredSources.length ? filteredSources : sources };
   } catch (err) {
     console.error('[RAG 错误]', err.message);
     return { error: 'AI 服务暂不可用，请稍后再试' };
