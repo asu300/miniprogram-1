@@ -7,22 +7,65 @@
  *   DEEPSEEK_API_KEY  (可在云函数中硬编码或通过 wx-server-sdk 获取)
  *
  * 部署前:
- *   1. 在 cloudfunctions/difyProxy/package.json 中加入 "wx-server-sdk"
+ *   1. 在 cloudfunctions/difyProxy/package.json 中已有 "wx-server-sdk"
  *   2. 右键 → 上传并部署
  */
 const cloud = require('wx-server-sdk');
 cloud.init({ env: cloud.DYNAMIC_CURRENT_ENV });
 const db = cloud.database();
+const _ = db.command;
 
 const https = require('https');
 
 // ===== 配置 =====
 const DEEPSEEK_API_KEY = 'sk-f27ac80444214044a1c2a59a2708ca35';
 const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
-const MAX_CHUNKS = 10;                // 最多取多少个相关片段
+const MAX_CHUNKS = 12;                // 最多取多少个相关片段
 const CHUNK_MATCH_THRESHOLD = 1;      // 至少匹配几个关键词（≥1）
 const SEARCH_LIMIT = 20;              // 每关键词取多少片段
 const TIMEOUT = 20000;                // DeepSeek 请求超时 (ms)
+
+// ─── 航空领域词典（最大正向匹配分词用）────────────────────────
+const AV_DICT = [
+  '波音', '空客', '747', '737', '767', '777', '787',
+  '飞机', '航空', '飞行', '航班', '航线', '航路', '机场', '跑道',
+  '驾驶舱', '客舱', '货舱', '起落架', '发动机', '引擎', '机翼',
+  '尾翼', '襟翼', '方向舵', '升降舵', '副翼',
+  '起飞', '降落', '巡航', '爬升', '下降', '滑行', '进近', '离场',
+  '航程', '速度', '高度', '马赫', '海里', '英尺',
+  '长宽高', '翼展', '机长', '机高', '载重', '载客', '燃油', '油量',
+  '最大起飞重量', '空重', '商载', '升限',
+  '飞行部', '机务', '签派', '乘务', '安保',
+  '郑州', '金奈', '德里', '列日', '布达佩斯', '班加罗尔', '北美',
+  '操作', '维护', '检查', '维修', '保养', '更换', '安装', '拆卸', '测试',
+  '长度', '宽度', '高度', '重量', '体积', '容量', '压力', '温度',
+  '培训', '考核', '资格', '执照',
+];
+
+// ─── 同义词 / 中英文扩展 ────────────────────────────────────
+const SYNONYM_MAP = {
+  '747': ['b747', 'boeing747', '波音747'],
+  'b747': ['747', 'boeing747', '波音747'],
+  '737': ['b737', 'boeing737', '波音737'],
+  '777': ['b777', 'boeing777', '波音777'],
+  '787': ['b787', 'boeing787', '波音787'],
+  '长宽高': ['尺寸', '外形尺寸', '规格'],
+  '尺寸': ['长宽高', '外形尺寸', '规格'],
+  '航程': ['续航', '飞行距离', '最大航程'],
+  '引擎': ['发动机'],
+  '发动机': ['引擎'],
+  '燃油': ['油量', '燃料', '加油量'],
+  '速度': ['时速', '速率', '速度范围'],
+  '重量': ['载重', '重量限制', '最大重量'],
+  '翼展': ['机翼宽度', '翼宽'],
+  '起飞': ['起降', '起飞性能'],
+  '降落': ['着陆', '着陆性能'],
+  '维护': ['保养', '检修', '维修'],
+  '维修': ['维护', '检修', '保养'],
+  '安全': ['安保', '安全措施', '安全须知'],
+  '紧急': ['应急', '紧急情况', '应急程序'],
+  '手册': ['指南', '操作手册', '使用手册'],
+};
 
 // ─── 中文停用词 ──────────────────────────────────────────────────
 const STOP_WORDS = new Set([
@@ -44,6 +87,27 @@ const STOP_WORDS = new Set([
   'but', 'not', 'no', 'yes', 'please', 'tell', 'give',
 ]);
 
+// ─── 中文正向最大匹配分词 ──────────────────────────────────────
+
+function segmentChinese(text) {
+  const result = [];
+  let i = 0;
+  while (i < text.length) {
+    let found = false;
+    for (let len = Math.min(12, text.length - i); len >= 2; len--) {
+      const w = text.substring(i, i + len);
+      if (AV_DICT.includes(w)) {
+        result.push(w);
+        i += len;
+        found = true;
+        break;
+      }
+    }
+    if (!found) i++;
+  }
+  return result;
+}
+
 // ─── 关键词提取 ──────────────────────────────────────────────────
 
 function extractKeywords(text) {
@@ -59,41 +123,60 @@ function extractKeywords(text) {
     result.push(lower);
   };
 
-  // 1. English words (preserve multi-letter tokens)
+  // 1. English words
   for (const w of text.match(/[a-zA-Z]+/g) || []) {
     if (w.length >= 2) add(w);
   }
 
-  // 1b. Numbers (e.g. "747", "737")
+  // 2. Numbers (e.g. "747", "737")
   for (const w of text.match(/\d{3,}/g) || []) {
     add(w);
   }
 
-  // 2. Chinese — keep original phrases (2+ chars)
+  // 3. Chinese — extract characters
   const chineseChars = text.match(/[一-鿿]/g) || [];
   const rawChinese = chineseChars.join('');
 
-  // 2a. add the whole Chinese string if it's long enough
+  // 3a. whole Chinese string
   if (rawChinese.length >= 2) add(rawChinese);
 
-  // 2b. add all 2-grams (character bigrams) — catches individual terms
+  // 3b. 2-grams (recall)
   for (let i = 0; i < rawChinese.length - 1; i++) {
     add(rawChinese.substring(i, i + 2));
   }
 
-  // 3. Also try splitting by common Chinese punctuation
+  // 3c. 3-grams (precision)
+  for (let i = 0; i < rawChinese.length - 2; i++) {
+    add(rawChinese.substring(i, i + 3));
+  }
+
+  // 3d. FMM segmentation using aviation dictionary
+  for (const w of segmentChinese(rawChinese)) {
+    add(w);
+  }
+
+  // 4. Split by punctuation
   for (const seg of text.split(/[，。、；：？！\s,.;:?!]+/)) {
     if (seg.length >= 2 && /[一-鿿]/.test(seg)) {
       add(seg);
     }
   }
 
+  // 5. Expand keywords with synonyms
+  const expanded = [...result];
+  for (const kw of result) {
+    const syns = SYNONYM_MAP[kw];
+    if (syns) {
+      for (const syn of syns) add(syn);
+    }
+  }
+
   // 优先用更长的词（更精确）
-  result.sort((a, b) => b.length - a.length || a.localeCompare(b));
-  return result.slice(0, 10);
+  expanded.sort((a, b) => b.length - a.length || a.localeCompare(b));
+  return expanded.slice(0, 15);
 }
 
-// ─── 文档搜索 ────────────────────────────────────────────────────
+// ─── 文档搜索（同时搜 content 和 fileName）───────────────────
 
 async function searchChunks(keywords) {
   if (!keywords.length) return [];
@@ -106,14 +189,15 @@ async function searchChunks(keywords) {
       ? escaped
       : `\\b${escaped}\\b`;
 
+    const regExp = db.RegExp({ regexp: pattern, options: 'i' });
+
     try {
+      // 同时匹配 content 和 fileName
       const res = await db.collection('doc_chunks')
-        .where({
-          content: db.RegExp({
-            regexp: pattern,
-            options: 'i',
-          }),
-        })
+        .where(_.or([
+          { content: regExp },
+          { fileName: regExp },
+        ]))
         .limit(SEARCH_LIMIT)
         .get();
       return res.data || [];
@@ -179,8 +263,8 @@ function callDeepSeek(query, context) {
   const body = JSON.stringify({
     model: 'deepseek-v4-flash',
     messages,
-    temperature: 0.3,
-    max_tokens: 2000,
+    temperature: 0.1,
+    max_tokens: 1024,
     stream: false,
   });
 
@@ -227,12 +311,10 @@ exports.main = async (event) => {
   const { query } = event;
   const wxContext = cloud.getWXContext();
 
-  // ── 参数校验 ──
   if (!query || typeof query !== 'string' || !query.trim()) {
     return { error: '请输入问题' };
   }
 
-  // 检查 API Key
   if (!DEEPSEEK_API_KEY || DEEPSEEK_API_KEY === 'sk-your-deepseek-api-key-here') {
     return { error: 'AI 服务未配置（缺少 DeepSeek API Key）' };
   }
@@ -248,7 +330,7 @@ exports.main = async (event) => {
       return { answer: '请提出更具体的问题，以便搜索相关文档。' };
     }
 
-    // 2. 搜索文档片段
+    // 2. 搜索文档片段（同时匹配 content 和 fileName）
     const chunks = await searchChunks(keywords);
     console.log(`  找到 ${chunks.length} 个相关片段`);
 
@@ -269,7 +351,7 @@ exports.main = async (event) => {
     // 4. 调用 DeepSeek
     let answer = await callDeepSeek(query, context);
 
-    // 5. 去重来源（按 fileId）
+    // 5. 去重来源
     const seen = new Set();
     const uniqueSources = sources.filter(s => {
       if (seen.has(s.fileId)) return false;
@@ -277,7 +359,7 @@ exports.main = async (event) => {
       return true;
     });
 
-    // 6. 验证引用编号：移除 answer 中越界的 [N]
+    // 6. 验证引用编号：移除越界的 [N]
     const maxN = uniqueSources.length;
     answer = answer.replace(/\[(\d+)\]/g, (match, n) => {
       const idx = parseInt(n, 10);
