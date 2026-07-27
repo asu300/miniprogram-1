@@ -1,0 +1,65 @@
+<view class="container" wx:if="{{exercise}}">
+  <!-- 标题 -->
+  <view class="header">
+    <text class="header-title">{{exercise.title}}</text>
+    <text class="header-progress" wx:if="{{exerciseList.length > 1}}">{{currentIndex + 1}}/{{exerciseList.length}}</text>
+  </view>
+
+  <!-- ATC 音频播放器 -->
+  <view class="player" wx:if="{{exercise.fileID}}">
+    <button class="play-btn" bindtap="toggleAudio">
+      {{audioPlaying ? '⏸' : '▶'}}
+    </button>
+    <slider class="progress-slider" value="{{audioProgress}}" bindchange="seekAudio"
+            activeColor="#1a73e8" block-size="16" />
+    <view class="time-info">
+      <text>{{audioCurrentTime}}</text>
+      <text>{{audioTotalTime}}</text>
+    </view>
+    <button class="replay-btn" bindtap="replayAudio">重听</button>
+  </view>
+
+  <!-- 录音区 -->
+  <view class="record-section">
+    <text class="section-label">听完后按下录音键回复：</text>
+
+    <view class="record-area">
+      <button class="record-btn {{recording ? 'recording' : ''}}" bindtap="toggleRecord">
+        <text class="record-icon">{{recording ? '⏹' : '🎤'}}</text>
+        <text class="record-text">{{recording ? '停止录音' : '按住录音'}}</text>
+      </button>
+      <text class="record-duration" wx:if="{{recording || recorded}}">{{recordDuration}}s</text>
+    </view>
+
+    <view class="my-audio" wx:if="{{recorded && !recording}}">
+      <button class="play-my-btn" bindtap="{{recordPlaying ? 'stopMyRecording' : 'playMyRecording'}}">
+        {{recordPlaying ? '停止回放' : '回听我的回复'}}
+      </button>
+    </view>
+  </view>
+
+  <!-- 操作按钮 -->
+  <view class="action-btns" wx:if="{{recorded && !showAnswer}}">
+    <button class="btn-answer" bindtap="showCorrectAnswer">查看正确原文</button>
+  </view>
+
+  <!-- 正确答案 -->
+  <view class="answer-section" wx:if="{{showAnswer}}">
+    <text class="answer-label">正确原文：</text>
+    <text class="answer-text">{{exercise.fullText}}</text>
+    <view class="action-btns">
+      <button class="btn-reset" bindtap="resetPractice">再来一次</button>
+    </view>
+  </view>
+
+  <!-- 上一题/下一题 -->
+  <view class="nav-btns" wx:if="{{exerciseList.length > 1}}">
+    <button class="btn-nav" bindtap="prevExercise" wx:if="{{currentIndex > 0}}">上一题</button>
+    <button class="btn-nav btn-next" bindtap="nextExercise" wx:if="{{currentIndex < exerciseList.length - 1}}">下一题</button>
+  </view>
+</view>
+
+<!-- 加载中 -->
+<view class="loading" wx:if="{{!exercise}}">
+  <text>加载中...</text>
+</view>

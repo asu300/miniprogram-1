@@ -1,0 +1,259 @@
+.container {
+  padding: 30rpx;
+  min-height: 100vh;
+  background-color: #f8fafc;
+  padding-bottom: 160rpx;
+}
+
+/* 标题 */
+.header {
+  text-align: center;
+  margin: 20rpx 0 40rpx;
+}
+
+.header-title {
+  font-size: 34rpx;
+  font-weight: bold;
+  color: #1a73e8;
+  line-height: 1.6;
+  word-break: break-all;
+}
+
+.header-progress {
+  display: block;
+  font-size: 26rpx;
+  color: #999;
+  margin-top: 10rpx;
+}
+
+/* ATC 音频播放器 */
+.player {
+  background: white;
+  border-radius: 18rpx;
+  padding: 24rpx 30rpx;
+  margin-bottom: 40rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  gap: 20rpx;
+  flex-wrap: wrap;
+}
+
+.play-btn {
+  width: 80rpx;
+  height: 80rpx;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1a73e8, #0d47a1);
+  color: white;
+  font-size: 32rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  flex-shrink: 0;
+}
+
+.progress-slider {
+  flex: 1;
+  min-width: 200rpx;
+}
+
+.time-info {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  font-size: 24rpx;
+  color: #999;
+  margin-top: -8rpx;
+}
+
+.replay-btn {
+  font-size: 24rpx;
+  color: #1a73e8;
+  background: #e8f0fe;
+  padding: 10rpx 24rpx;
+  border-radius: 30rpx;
+  line-height: 1.4;
+}
+
+/* 录音区 */
+.record-section {
+  margin-bottom: 30rpx;
+}
+
+.section-label {
+  font-size: 28rpx;
+  color: #666;
+  display: block;
+  margin-bottom: 24rpx;
+  font-weight: 600;
+}
+
+.record-area {
+  display: flex;
+  align-items: center;
+  gap: 24rpx;
+  margin-bottom: 20rpx;
+}
+
+.record-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12rpx;
+  height: 100rpx;
+  padding: 0 50rpx;
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border-radius: 50rpx;
+  font-size: 32rpx;
+  font-weight: bold;
+  box-shadow: 0 6rpx 20rpx rgba(40, 167, 69, 0.3);
+}
+
+.record-btn.recording {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  box-shadow: 0 6rpx 20rpx rgba(220, 53, 69, 0.4);
+  animation: pulse 1.2s infinite;
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+.record-icon {
+  font-size: 36rpx;
+}
+
+.record-text {
+  font-size: 30rpx;
+}
+
+.record-duration {
+  font-size: 36rpx;
+  color: #dc3545;
+  font-weight: bold;
+  min-width: 60rpx;
+}
+
+/* 回听录音 */
+.my-audio {
+  margin-top: 16rpx;
+}
+
+.play-my-btn {
+  height: 76rpx;
+  background: #e8f0fe;
+  color: #1a73e8;
+  font-size: 28rpx;
+  border-radius: 14rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+/* 操作按钮 */
+.action-btns {
+  margin-top: 30rpx;
+}
+
+.btn-answer {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #1a73e8, #0d47a1);
+  color: white;
+  border: none;
+  border-radius: 18rpx;
+  font-size: 34rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-reset {
+  width: 100%;
+  height: 88rpx;
+  background: linear-gradient(135deg, #28a745, #1e7e34);
+  color: white;
+  border: none;
+  border-radius: 18rpx;
+  font-size: 34rpx;
+  font-weight: bold;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-answer:active,
+.btn-reset:active {
+  transform: scale(0.97);
+}
+
+/* 正确答案 */
+.answer-section {
+  margin-top: 30rpx;
+  background: #e8f5e9;
+  border-radius: 18rpx;
+  padding: 30rpx;
+  border: 2rpx solid #28a745;
+}
+
+.answer-label {
+  font-size: 26rpx;
+  color: #1e7e34;
+  font-weight: 600;
+  display: block;
+  margin-bottom: 16rpx;
+}
+
+.answer-text {
+  font-size: 32rpx;
+  color: #333;
+  line-height: 1.8;
+  word-break: break-all;
+  display: block;
+}
+
+/* 加载中 */
+.loading {
+  text-align: center;
+  margin-top: 400rpx;
+  color: #999;
+  font-size: 30rpx;
+}
+
+/* 上一题/下一题 */
+.nav-btns {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 40rpx;
+  padding-bottom: 40rpx;
+}
+
+.btn-nav {
+  flex: 1;
+  height: 80rpx;
+  background: white;
+  color: #1a73e8;
+  border: 2rpx solid #1a73e8;
+  border-radius: 18rpx;
+  font-size: 30rpx;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.btn-nav.btn-next {
+  background: linear-gradient(135deg, #1a73e8, #0d47a1);
+  color: white;
+  border: none;
+}
+
+.btn-nav:active {
+  transform: scale(0.97);
+}

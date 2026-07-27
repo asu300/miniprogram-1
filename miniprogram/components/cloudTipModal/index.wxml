@@ -1,0 +1,41 @@
+<view class="container">
+  <view class="header">
+    <text class="title">四分部资料大全</text>
+  </view>
+
+  <!-- 航线 & 资料分类按钮 -->
+  <view class="folder-grid">
+    <view class="folder-item" bindtap="goToCategory" data-category="zhengzhou_jinai">
+      <view class="folder-icon">✈️</view>
+      <text class="folder-name">郑州 → 金奈</text>
+    </view>
+
+    <view class="folder-item" bindtap="goToCategory" data-category="zhengzhou_delhi">
+      <view class="folder-icon">✈️</view>
+      <text class="folder-name">郑州 → 德里</text>
+    </view>
+
+    <view class="folder-item" bindtap="goToCategory" data-category="zhengzhou_liege">
+      <view class="folder-icon">✈️</view>
+      <text class="folder-name">郑州 → 列日</text>
+    </view>
+
+    <view class="folder-item" bindtap="goToCategory" data-category="zhengzhou_budapest">
+      <view class="folder-icon">✈️</view>
+      <text class="folder-name">郑州 → 布达佩斯</text>
+    </view>
+
+    <view class="folder-item" bindtap="goToCategory" data-category="b747_ops">
+      <view class="folder-icon">🛫</view>
+      <text class="folder-name">747 运行资料</text>
+    </view>
+
+    <view class="folder-item" bindtap="goToCategory" data-category="other_important">
+      <view class="folder-icon">📁</view>
+      <text class="folder-name">其它重要文件</text>
+    </view>
+  </view>
+
+  <!-- 上传按钮（仅你可见） -->
+  <button bindtap="goToUpload" class="upload-btn">📤 上传新资料</button>
+</view>

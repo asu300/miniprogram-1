@@ -1,0 +1,130 @@
+<view class="container">
+  <view class="title">四分部资料大全</view>
+
+  <!-- 分类滑动区域 -->
+  <scroll-view class="category-scroll" scroll-x scroll-left="{{scrollLeft}}" scroll-with-animation
+                bindscroll="onScroll">
+    <view class="scroll-track">
+      <!-- 第一页 -->
+      <view class="scroll-page">
+        <view class="category-grid">
+          <view class="category-card" bindtap="goList" data-cat="recent_announcement">
+            <text class="icon">📢</text>
+            <text class="label">飞行部重要宣贯</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="zhengzhou_jinai">
+            <text class="icon">🛩️</text>
+            <text class="label">郑州 → 金奈</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="zhengzhou_delhi">
+            <text class="icon">🛫</text>
+            <text class="label">郑州 → 德里</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="zhengzhou_liege">
+            <text class="icon">✈️</text>
+            <text class="label">郑州 → 列日</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="zhengzhou_budapest">
+            <text class="icon">🛬</text>
+            <text class="label">郑州 → 布达佩斯</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="zhengzhou_bangalore">
+            <text class="icon">✈️</text>
+            <text class="label">郑州 → 班加罗尔</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="zhengzhou_north_america">
+            <text class="icon">🗽</text>
+            <text class="label">郑州 → 北美</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="b747_ops">
+            <text class="icon">📖</text>
+            <text class="label">B747 手册</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="other_important">
+            <text class="icon">🗃️</text>
+            <text class="label">其它重要资料</text>
+          </view>
+          <view class="category-card" bindtap="goList" data-cat="media_resources">
+            <text class="icon">🎥</text>
+            <text class="label">音视频资料</text>
+          </view>
+        </view>
+      </view>
+      <!-- 第二页 -->
+      <view class="scroll-page">
+        <view class="category-grid">
+          <view class="category-card" bindtap="goExercise">
+            <text class="icon">📝</text>
+            <text class="label">航空英语</text>
+          </view>
+          <view class="category-card" bindtap="goAi">
+            <text class="icon">🤖</text>
+            <text class="label">AI 知识库</text>
+          </view>
+        </view>
+      </view>
+    </view>
+  </scroll-view>
+
+  <!-- 页码指示器 -->
+  <view class="page-dots">
+    <view class="dot {{currentPage === 0 ? 'active' : ''}}" bindtap="goPage" data-page="0"></view>
+    <view class="dot {{currentPage === 1 ? 'active' : ''}}" bindtap="goPage" data-page="1"></view>
+  </view>
+
+  <!-- 搜索栏 -->
+  <view class="search-bar">
+    <input
+      class="search-input"
+      placeholder="搜索文件名..."
+      value="{{searchKeyword}}"
+      bindinput="onSearchInput"
+      bindconfirm="onSearch"
+      confirm-type="search"
+    />
+    <button class="search-btn" bindtap="onSearch">搜索</button>
+    <button class="search-clear-btn" wx:if="{{hasSearched}}" bindtap="clearSearch">清除</button>
+  </view>
+
+  <!-- 搜索结果 -->
+  <view class="search-results" wx:if="{{hasSearched && searchResults.length > 0}}">
+    <view class="results-header">
+      <text class="results-title">搜索结果 ({{searchResults.length}})</text>
+    </view>
+    <view class="result-item" wx:for="{{searchResults}}" wx:key="_id"
+          bindtap="goToResult"
+          data-category="{{item.category}}"
+          data-fileid="{{item.fileID}}">
+      <view class="result-row">
+        <text class="result-icon">{{item.icon}}</text>
+        <view class="result-info">
+          <text class="result-name">{{item.name}}</text>
+          <view class="result-meta">
+            <text class="result-category">{{item.categoryName}}</text>
+            <text class="result-time">{{item.formattedTime}}</text>
+          </view>
+        </view>
+        <text class="result-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 搜索无结果 -->
+  <view class="search-empty" wx:if="{{hasSearched && searchResults.length === 0 && !isSearching}}">
+    <text class="search-empty-icon">🔍</text>
+    <text class="search-empty-text">未找到相关文件</text>
+    <text class="search-empty-tip">请尝试其他关键词</text>
+  </view>
+
+  <!-- 上传按钮 -->
+  <navigator url="/pages/upload/upload" open-type="navigate">
+    <button class="upload-btn">📤 上传</button>
+  </navigator>
+
+  <!-- AI 悬浮球 -->
+  <view class="ai-float {{aiFloatExpanded ? 'expanded' : ''}}"
+        bindtouchstart="showAiFloat" bindtouchend="hideAiFloat" bindtap="onAiFloatTap">
+    <text class="ai-float-icon">🤖</text>
+    <text class="ai-float-label">AI<br/>知识库</text>
+  </view>
+</view>

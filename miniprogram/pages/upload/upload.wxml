@@ -1,0 +1,58 @@
+<view class="upload-container">
+  <!-- 标题 -->
+  <view class="page-title">📤 上传文件</view>
+  
+  <!-- 分类选择 -->
+  <view class="category-section">
+    <text class="label">选择分类</text>
+    <picker mode="selector" range="{{categoryNames}}" value="{{selectedCategoryIndex}}" bindchange="onCategoryChange">
+      <view class="picker-item">
+        <text class="picker-text">{{categoryNames[selectedCategoryIndex]}}</text>
+        <text class="arrow">▼</text>
+      </view>
+    </picker>
+  </view>
+
+  <!-- 三按钮组 -->
+  <view class="button-group">
+    <button class="choose-file-btn" bindtap="chooseFile">
+      <text class="btn-icon">📄</text>选择单个文件
+    </button>
+    <button class="choose-image-btn" bindtap="chooseImage">
+      <text class="btn-icon">🖼️</text>上传图片
+    </button>
+  </view>
+  
+  <button class="btn-multiple" bindtap="chooseMultipleFiles">
+    <text class="btn-icon">📁</text>多选文件（最多9个）
+  </button>
+
+  <!-- 🔑 核心修复：精准文件预览区（解决空白+数量错乱） -->
+  <view wx:if="{{previewVisible}}" class="file-preview">
+    <view class="preview-header">
+      <text wx:if="{{isMultiSelect}}">✅ 已选 {{fileCount}} 个文件</text>
+      <text wx:else>📎 {{previewFileName}}</text>
+    </view>
+    
+    <!-- 多文件列表 -->
+    <scroll-view wx:if="{{isMultiSelect}}" scroll-y class="file-list">
+      <block wx:for="{{previewFiles}}" wx:key="index">
+        <view class="file-item">
+          <text class="file-name">📄 {{item.name}}</text>
+          <text class="file-size">{{item.sizeText}}</text>
+        </view>
+      </block>
+    </scroll-view>
+    
+    <!-- 单文件信息 -->
+    <view wx:else class="single-file-info">
+      <text class="file-name">📎 {{previewFileName}}</text>
+      <text class="file-size">{{previewFileSize}}</text>
+    </view>
+  </view>
+
+  <!-- 上传按钮 -->
+  <button class="upload-btn" bindtap="uploadFile" disabled="{{!canUpload}}">
+    <text class="btn-icon">📤</text>上传到「{{categoryNames[selectedCategoryIndex]}}」
+  </button>
+</view>

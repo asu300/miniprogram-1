@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:cloud.dify.ai)",
+      "WebSearch",
+      "WebFetch(domain:docs.dify.ai)",
+      "WebFetch(domain:bbs.huaweicloud.com)",
+      "WebFetch(domain:developer.aliyun.com)",
+      "Bash(npm init *)",
+      "Bash(npm install *)",
+      "Bash(node batch-import-dify.js)",
+      "Bash(node -e ' *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --connect-timeout 5 https://cloud.dify.ai)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --connect-timeout 5 https://api.dify.ai)",
+      "Bash(node download-files.js)",
+      "Bash(node upload-to-dify.js)",
+      "Bash(nslookup cloud.dify.ai)",
+      "Bash(curl -s --connect-timeout 10 https://cloud.dify.ai -o /dev/null -w \"HTTP %{http_code}\")",
+      "Bash(node *)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --connect-timeout 5 https://cloud.fastgpt.in)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" --connect-timeout 5 https://api.fastgpt.in)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:doc.fastgpt.io)",
+      "Bash(awk -F. '{print tolower\\($NF\\)}')",
+      "Bash(npm ls *)",
+      "Bash(tasklist //FI \"IMAGENAME eq node.exe\")",
+      "Bash(npm uninstall *)",
+      "Bash(npx --yes @cloudbase/cli --version)",
+      "Bash(npm list *)",
+      "Bash(pip list *)",
+      "Read(//c/Program Files \\(x86\\)/Tencent/**)",
+      "Read(//c/Program Files/Tencent/**)",
+      "Read(//c/Users/67225/AppData/Local/**)",
+      "Read(//c/Users/67225/AppData/Local/Tencent/**)",
+      "Bash(npx @cloudbase/cli --help)",
+      "Skill(update-config)",
+      "Bash(cp *)",
+      "Bash(gh auth *)",
+      "Bash(where gh *)",
+      "Bash(winget install *)"
+    ]
+  }
+}

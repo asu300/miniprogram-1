@@ -1,0 +1,61 @@
+<view class="container">
+  <!-- 标题（可点击触发管理） -->
+  <view 
+    class="header" 
+    bindtap="onTitleTap" 
+    data-action="admin-trigger"
+  >
+    {{ categoryName }}
+  </view>
+
+  <!-- 文件列表 -->
+  <view class="file-list" wx:if="{{fileList.length > 0}}">
+    <view class="file-item {{item.isHighlighted ? 'file-highlighted' : ''}}" wx:for="{{fileList}}" wx:key="_id" data-highlight="{{item.fileID}}" style="position: relative;">
+      <!-- 置顶标识（绝对定位右上角） -->
+      <view wx:if="{{item.isTop}}" class="top-badge">置顶</view>
+      
+      <!-- 文件类型图标 + 文件名（点击预览） -->
+      <view class="file-row" bindtap="previewFile" data-fileid="{{item.fileID}}">
+        <!-- ✅ 修正：直接使用预计算的 icon 字段 -->
+        <text class="file-icon">{{item.icon}}</text>
+        
+        <!-- 文件名 -->
+        <text class="file-name {{item.isTop ? 'name-top' : ''}}">{{item.name}}</text>
+      </view>
+      
+      <!-- 上传时间 -->
+      <text class="file-time">{{item.formattedTime}}</text>
+
+      <!-- 管理模式操作区 -->
+      <view class="admin-actions" wx:if="{{isAdmin}}">
+        <button 
+          class="btn-top {{item.isTop ? 'active' : ''}}" 
+          size="mini" 
+          bindtap="toggleTopFile"
+          data-id="{{item._id}}"
+          data-istop="{{item.isTop ? 'true' : 'false'}}"
+          data-name="{{item.name}}"
+        >
+          {{item.isTop ? '取消置顶' : '置顶'}}
+        </button>
+        <button class="btn-edit" size="mini" bindtap="renameFile" data-id="{{item._id}}" data-name="{{item.name}}">修改</button>
+        <button class="btn-delete" size="mini" bindtap="deleteFile" data-id="{{item._id}}" data-fileid="{{item.fileID}}">删除</button>
+      </view>
+
+      <!-- PPT 提示 -->
+      <view wx:if="{{isPPT(item.name)}}" class="ppt-hint">
+        点击后请用 WPS 或 PowerPoint 打开
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:else>
+    <text class="empty-icon">📁</text>
+    <text class="empty-text">暂无文件</text>
+    <text class="empty-tip" wx:if="{{isAdmin}}">点击右上角上传新文件</text>
+  </view>
+
+  <!-- 返回按钮 -->
+  <button class="back-btn" bindtap="goBack">返回分类</button>
+</view>

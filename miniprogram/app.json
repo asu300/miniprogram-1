@@ -1,0 +1,20 @@
+{
+  "pages": [
+    "pages/index/index",
+    "pages/list/list",
+    "pages/upload/upload",
+    "pages/exercise/exercise",
+    "pages/exerciseDetail/exerciseDetail",
+    "pages/ai/ai"
+  ],
+  "window": {
+    "navigationBarTitleText": "四分部资料大全",
+    "navigationBarBackgroundColor": "#1a73e8",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f9fbfd",
+    "backgroundTextStyle": "light"
+  },
+  "lazyCodeLoading": "requiredComponents",
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}

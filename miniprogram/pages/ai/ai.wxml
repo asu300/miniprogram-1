@@ -1,0 +1,45 @@
+<view class="container">
+  <!-- 状态栏 -->
+  <view style="height:{{statusBarHeight}}px; background:#1a73e8;"></view>
+  <!-- 头部 -->
+  <view class="header">
+    <view class="header-left" bindtap="goBack">
+      <text class="back-arrow">‹</text>
+      <text class="back-text">返回</text>
+    </view>
+    <text class="header-title">AI 知识库</text>
+    <view class="header-right" bindtap="clearChat">
+      <text class="clear-btn">清空</text>
+    </view>
+  </view>
+
+  <!-- 消息列表 -->
+  <scroll-view class="chat-scroll" scroll-y scroll-into-view="msg-bottom" scroll-with-animation>
+    <view class="messages">
+      <view class="message-item {{item.role === 'user' ? 'msg-user' : 'msg-assistant'}}" wx:for="{{messages}}" wx:key="index">
+        <view class="bubble {{item.role === 'user' ? 'bubble-user' : 'bubble-assistant'}} {{item.isError ? 'bubble-error' : ''}}">
+          <text class="bubble-text">{{item.content}}</text>
+        </view>
+      </view>
+
+      <!-- 加载中 -->
+      <view class="message-item msg-assistant" wx:if="{{isLoading}}">
+        <view class="bubble bubble-assistant">
+          <view class="loading-dots">
+            <text class="dot">.</text>
+            <text class="dot">.</text>
+            <text class="dot">.</text>
+          </view>
+        </view>
+      </view>
+
+      <view id="msg-bottom"></view>
+    </view>
+  </scroll-view>
+
+  <!-- 底部输入区 -->
+  <view class="input-area">
+    <input class="input-box" placeholder="输入你的问题..." value="{{inputValue}}" bindinput="onInput" bindconfirm="sendMessage" confirm-type="send" disabled="{{isLoading}}" />
+    <button class="send-btn {{canSend ? '' : 'send-disabled'}}" bindtap="sendMessage" disabled="{{!canSend || isLoading}}">发送</button>
+  </view>
+</view>

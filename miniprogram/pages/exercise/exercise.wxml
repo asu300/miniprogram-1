@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="title">航空英语练习</view>
+
+  <!-- 分组列表 -->
+  <view class="group-list" wx:if="{{groups.length > 0}}">
+    <view class="group-card" wx:for="{{groups}}" wx:key="videoTitle" bindtap="goGroup" data-title="{{item.videoTitle}}">
+      <view class="group-title">{{item.videoTitle}}</view>
+      <view class="group-footer">
+        <text class="group-count">{{item.count}} 题</text>
+        <text class="card-arrow">›</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 空状态 -->
+  <view class="empty" wx:if="{{!isLoading && groups.length === 0}}">
+    <text class="empty-icon">📚</text>
+    <text class="empty-text">暂无练习</text>
+    <text class="empty-tip">请先在电脑端处理视频并上传题目</text>
+  </view>
+
+  <!-- 返回按钮 -->
+  <button class="back-btn" bindtap="goBack">返回首页</button>
+</view>
