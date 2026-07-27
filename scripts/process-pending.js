@@ -69,8 +69,17 @@ async function main() {
     try {
       if (ext === 'pdf') {
         text = (await pdfParse(fs.readFileSync(tmp))).text || '';
-      } else if (ext === 'docx' || ext === 'doc') {
+      } else if (ext === 'docx') {
         text = (await mammoth.extractRawText({ path: tmp })).value || '';
+      } else if (ext === 'doc') {
+        // Old .doc → antiword (already on Mini PC), fallback to mammoth
+        try {
+          text = require('child_process').execSync(`antiword -m UTF-8.txt "${tmp}"`, {encoding:'utf8', timeout:30000}) || '';
+        } catch (_) { text = ''; }
+        if (!text.trim()) {
+          try { text = (await mammoth.extractRawText({ path: tmp })).value || ''; }
+          catch (_) { text = ''; }
+        }
       }
     } catch (e) { console.log(`  提取失败: ${e.message}`); continue; }
 
