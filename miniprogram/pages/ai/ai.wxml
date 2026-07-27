@@ -1,15 +1,18 @@
 <view class="container">
-  <!-- 状态栏 -->
-  <view style="height:{{statusBarHeight}}px; background:#1a73e8;"></view>
-  <!-- 头部 -->
-  <view class="header">
-    <view class="header-left" bindtap="goBack">
-      <text class="back-arrow">‹</text>
-      <text class="back-text">返回</text>
-    </view>
-    <text class="header-title">AI 知识库</text>
-    <view class="header-right" bindtap="clearChat">
-      <text class="clear-btn">清空</text>
+  <!-- 顶部蓝色区域（覆盖到最顶） -->
+  <view style="background:#1a73e8;">
+    <!-- 状态栏 -->
+    <view style="height:{{statusBarHeight}}px;"></view>
+    <!-- 头部 -->
+    <view class="header">
+      <view class="header-left" bindtap="goBack">
+        <text class="back-arrow">‹</text>
+        <text class="back-text">返回</text>
+      </view>
+      <text class="header-title">AI 知识库</text>
+      <view class="header-right" bindtap="clearChat">
+        <text class="clear-btn">清空</text>
+      </view>
     </view>
   </view>
 
