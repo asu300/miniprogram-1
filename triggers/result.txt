@@ -1,12 +1,75 @@
 状态: 完成
-时间: 2026-07-27T16:44:08.798Z
+时间: 2026-07-27T16:48:44.982Z
 
-待处理文件: 32
+待处理文件: 31
 
 处理: 目视进近飞行管理方案.pdf
   空内容
 
-处理: AirDropManual-GOM_运行总手册_V7R0-Manual.pdf
+处理: AirDropManual-SOP03_B747-400标准操作程序_V1R7-Manual.pdf
 Warning: TT: undefined function: 3
 Warning: TT: undefined function: 3
-  750788 字 → 1728 片段
+Warning: TT: undefined function: 3
+  186188 字 → 432 片段
+  ✅ 完成
+
+处理: 关于停机坪信号和手势使用的运行提示.pdf
+Warning: TT: undefined function: 21
+  1293 字 → 3 片段
+  ✅ 完成
+
+处理: 关于严肃通关纪律、加强个人进出境物品管理的运行提示.pdf
+Warning: TT: undefined function: 21
+  1503 字 → 4 片段
+  ✅ 完成
+
+处理: 关于着陆要求的管理通告.pdf
+Warning: TT: undefined function: 21
+  1289 字 → 3 片段
+  ✅ 完成
+
+处理: 关于燃油低温风险的运行提示.pdf
+Warning: TT: undefined function: 32
+  1471 字 → 4 片段
+  ✅ 完成
+
+处理: 关于规范风数据、温度数据输入方法的运行提示.pdf
+Warning: TT: undefined function: 32
+  4109 字 → 10 片段
+  ✅ 完成
+
+处理: 飞行部B747机型带飞管理通告.pdf
+  599 字 → 2 片段
+  ✅ 完成
+
+处理: 关于规范信息报送流程的管理通告.pdf
+  910 字 → 2 片段
+  ✅ 完成
+
+处理: 关于严格遵守列日机场减噪程序的运行提示.pdf
+Warning: TT: undefined function: 32
+  2291 字 → 6 片段
+  ✅ 完成
+
+处理: 中原龙浩航空B747机型极限数据（更新）.pdf
+  6365 字 → 15 片段
+  ✅ 完成
+
+处理: 中原龙浩航空OPT软件标准操作说明R1.pdf
+Warning: TT: undefined function: 21
+  6020 字 → 14 片段
+  ✅ 完成
+
+处理: 班加罗尔首航纪要.docx
+  2158 字 → 6 片段
+  ✅ 完成
+
+处理: KORD_Charts_21-05-2026.pdf
+  157385 字 → 359 片段
+  ✅ 完成
+
+处理: PANC_Charts_21-05-2026.pdf
+  31440 字 → 73 片段
+  ✅ 完成
+
+全部完成
