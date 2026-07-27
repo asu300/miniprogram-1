@@ -28,68 +28,55 @@ async function main() {
   console.log('[看门狗] git pull...');
   run('git pull');
 
-  // 2. 检查是否有指令
-  if (!fs.existsSync(RUN_FILE)) {
-    console.log('[看门狗] 无指令，退出');
-    return;
-  }
+  // 2. 自动处理待提取文件（无人值守）
+  console.log('[看门狗] 自动检查待处理文件...');
+  let result = run('node scripts/process-pending.js');
+  console.log(result);
 
-  const cmd = fs.readFileSync(RUN_FILE, 'utf8').trim();
-  console.log('[看门狗] 指令:', cmd);
+  // 3. 检查是否有额外指令（wechat/exec/shell）
+  if (fs.existsSync(RUN_FILE)) {
+    const cmd = fs.readFileSync(RUN_FILE, 'utf8').trim();
+    console.log('[看门狗] 指令:', cmd);
 
-  let result = '';
+    if (cmd.startsWith('wechat:')) {
+      const msg = cmd.slice(7).trim();
+      console.log('[看门狗] 发微信:', msg);
+      const https = require('https');
+      const data = JSON.stringify({
+        msg_type: 'interactive',
+        card: {
+          header: { title: { tag: 'plain_text', content: '📡 主机消息' }, template: 'blue' },
+          elements: [{ tag: 'markdown', content: msg }]
+        }
+      });
+      const req = https.request({
+        hostname: 'open.feishu.cn',
+        path: '/open-apis/bot/v2/hook/de34c675-4511-4bf5-bd39-3fa7daea505e',
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' }
+      }, res => { console.log('[看门狗] 飞书状态:', res.statusCode); });
+      req.write(data); req.end();
+      result += '\n已发送微信消息: ' + msg;
+    } else if (cmd.startsWith('exec:')) {
+      const script = cmd.slice(5).trim();
+      console.log('[看门狗] 执行脚本:', script);
+      result += '\n' + run(script);
+    } else if (cmd.startsWith('shell:')) {
+      const shellCmd = cmd.slice(6).trim();
+      console.log('[看门狗] 执行命令:', shellCmd);
+      result += '\n' + run(shellCmd);
+    } else {
+      result += '\n未知指令: ' + cmd;
+    }
 
-  // "wechat:消息内容" → 通过飞书发到微信
-  if (cmd.startsWith('wechat:')) {
-    const msg = cmd.slice(7).trim();
-    console.log('[看门狗] 发微信:', msg);
-    const https = require('https');
-    const data = JSON.stringify({
-      msg_type: 'interactive',
-      card: {
-        header: { title: { tag: 'plain_text', content: '📡 主机消息' }, template: 'blue' },
-        elements: [{ tag: 'markdown', content: msg }]
-      }
-    });
-    const req = https.request({
-      hostname: 'open.feishu.cn',
-      path: '/open-apis/bot/v2/hook/de34c675-4511-4bf5-bd39-3fa7daea505e',
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' }
-    }, res => { console.log('[看门狗] 飞书状态:', res.statusCode); });
-    req.write(data); req.end();
-    result = '已发送微信消息: ' + msg;
-  }
-  else if (cmd === 'process-pending') {
-    console.log('[看门狗] 开始处理...');
-    result = run('node scripts/process-pending.js');
-    console.log(result);
-  } else if (cmd.startsWith('exec:')) {
-    const script = cmd.slice(5).trim();
-    console.log('[看门狗] 执行脚本:', script);
-    result = run(script);
-    console.log(result);
-  } else if (cmd.startsWith('shell:')) {
-    const shellCmd = cmd.slice(6).trim();
-    console.log('[看门狗] 执行命令:', shellCmd);
-    result = run(shellCmd);
-    console.log(result);
-  } else if (cmd.startsWith('wechat:')) {
-    const msg = cmd.slice(7).trim();
-    console.log('[看门狗] 发送微信消息:', msg);
-    const psCmd = `powershell -ExecutionPolicy Bypass -Command "$wshell=New-Object -ComObject wscript.shell;if($wshell.AppActivate('微信')){Start-Sleep 1;$wshell.SendKeys('${msg}{ENTER}');echo 'OK'}else{echo 'ERR:WeChat window not found'}"`;
-    result = run(psCmd);
-    console.log(result);
-  } else {
-    result = `未知指令: ${cmd}`;
-    console.log(result);
+    // 删除指令文件
+    fs.unlinkSync(RUN_FILE);
   }
 
   // 4. 写结果
   fs.writeFileSync(RESULT_FILE, `状态: 完成\n时间: ${new Date().toISOString()}\n\n${result}`);
 
-  // 5. 删除指令，推回结果
-  fs.unlinkSync(RUN_FILE);
+  // 5. 推回结果
   run('git add triggers/');
   run('git commit -m "🔄 Mini PC: 处理完成"');
   const pushResult = run('git push');
