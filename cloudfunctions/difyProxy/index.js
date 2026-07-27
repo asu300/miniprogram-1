@@ -42,6 +42,27 @@ const CATEGORY_NAMES = {
 // ─── 时间关键词（命中时按时间排序）────────────────────
 const TIME_WORDS = ['最近', '最新', '近期', '新发布', '新', '近期内', 'recent', 'latest', 'new', '近'];
 
+// ─── 中文分类名 → 分类代码（用户说"飞行部宣贯"也能搜到）────────
+const CATEGORY_ALIASES = {
+  '飞行部': 'recent_announcement',
+  '宣贯': 'recent_announcement',
+  '飞行部重要宣贯': 'recent_announcement',
+  '近期通知': 'recent_announcement',
+  '风险提示': 'recent_announcement',
+  '安全通告': 'recent_announcement',
+  '金奈': 'zhengzhou_jinai',
+  '德里': 'zhengzhou_delhi',
+  '列日': 'zhengzhou_liege',
+  '布达佩斯': 'zhengzhou_budapest',
+  '班加罗尔': 'zhengzhou_bangalore',
+  '北美': 'zhengzhou_north_america',
+  'b747': 'b747_ops',
+  '手册': 'b747_ops',
+  '操作手册': 'b747_ops',
+  '重要资料': 'other_important',
+  '音视频': 'media_resources',
+};
+
 // ─── 航空领域词典（最大正向匹配分词用）────────────────────────
 const AV_DICT = [
   '波音', '空客', '747', '737', '767', '777', '787',
@@ -52,7 +73,9 @@ const AV_DICT = [
   '航程', '速度', '高度', '马赫', '海里', '英尺',
   '长宽高', '翼展', '机长', '机高', '载重', '载客', '燃油', '油量',
   '最大起飞重量', '空重', '商载', '升限',
-  '飞行部', '机务', '签派', '乘务', '安保',
+  '飞行部', '宣贯', '重要宣贯', '飞行部重要宣贯',
+  '风险提示', '安全通告', '通知',
+  '机务', '签派', '乘务', '安保',
   '郑州', '金奈', '德里', '列日', '布达佩斯', '班加罗尔', '北美',
   '操作', '维护', '检查', '维修', '保养', '更换', '安装', '拆卸', '测试',
   '长度', '宽度', '高度', '重量', '体积', '容量', '压力', '温度',
@@ -207,14 +230,18 @@ async function searchChunks(keywords) {
       : `\\b${escaped}\\b`;
 
     const regExp = db.RegExp({ regexp: pattern, options: 'i' });
+    const catKey = CATEGORY_ALIASES[kw];
 
     try {
-      // 同时匹配 content 和 fileName
+      const conditions = [
+        { content: regExp },
+        { fileName: regExp },
+      ];
+      // 如果关键词匹配某个分类别名，也按分类代码搜
+      if (catKey) conditions.push({ category: catKey });
+
       const res = await db.collection('doc_chunks')
-        .where(_.or([
-          { content: regExp },
-          { fileName: regExp },
-        ]))
+        .where(_.or(conditions))
         .limit(SEARCH_LIMIT)
         .get();
       return res.data || [];
