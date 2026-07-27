@@ -22,7 +22,7 @@ const DEEPSEEK_API_KEY = 'sk-f27ac80444214044a1c2a59a2708ca35';
 const DEEPSEEK_URL = 'https://api.deepseek.com/v1/chat/completions';
 const MAX_CHUNKS = 20;                // 最多取多少个相关片段
 const CHUNK_MATCH_THRESHOLD = 1;      // 至少匹配几个关键词（≥1）
-const SEARCH_LIMIT = 20;              // 每关键词取多少片段
+const SEARCH_LIMIT = 30;              // 每关键词取多少片段（分类搜索取 3x = 90）
 const TIMEOUT = 20000;                // DeepSeek 请求超时 (ms)
 
 // ─── 分类名称映射 ──────────────────────────────────────────────
@@ -233,18 +233,24 @@ async function searchChunks(keywords) {
     const catKey = CATEGORY_ALIASES[kw];
 
     try {
-      const conditions = [
-        { content: regExp },
-        { fileName: regExp },
-      ];
-      // 如果关键词匹配某个分类别名，也按分类代码搜
-      if (catKey) conditions.push({ category: catKey });
+      let results;
 
-      const res = await db.collection('doc_chunks')
-        .where(_.or(conditions))
-        .limit(SEARCH_LIMIT)
-        .get();
-      return res.data || [];
+      if (catKey) {
+        // 分类搜索：直接搜该分类下的所有文档（不限制内容），取更大量的片段
+        results = await db.collection('doc_chunks')
+          .where({ category: catKey })
+          .limit(SEARCH_LIMIT * 3)
+          .get();
+      } else {
+        // 内容/文件名搜索
+        const res = await db.collection('doc_chunks')
+          .where(_.or([{ content: regExp }, { fileName: regExp }]))
+          .limit(SEARCH_LIMIT)
+          .get();
+        results = res;
+      }
+
+      return results.data || [];
     } catch (e) {
       console.error(`[关键词搜索错误] ${kw}:`, e.message);
       return [];
