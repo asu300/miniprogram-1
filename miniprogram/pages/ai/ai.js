@@ -9,7 +9,6 @@ Page({
   },
 
   onLoad() {
-    // 获取状态栏高度
     const sys = wx.getSystemInfoSync();
     this.setData({
       statusBarHeight: sys.statusBarHeight || 44,
@@ -18,6 +17,24 @@ Page({
         content: '你好！我是 AI 知识库助手，你可以问我关于文件中资料的任何问题。'
       }]
     });
+  },
+
+  // 将回答文本解析为片段（普通文字 + 引用标记）
+  parseSegments(text) {
+    const segments = [];
+    const re = /\[(\d+)\]/g;
+    let last = 0, match;
+    while ((match = re.exec(text)) !== null) {
+      if (match.index > last) {
+        segments.push({ t: 'text', v: text.slice(last, match.index) });
+      }
+      segments.push({ t: 'cite', v: parseInt(match[1], 10) });
+      last = re.lastIndex;
+    }
+    if (last < text.length) {
+      segments.push({ t: 'text', v: text.slice(last) });
+    }
+    return segments;
   },
 
   onInput(e) {
@@ -54,15 +71,21 @@ Page({
         });
         return;
       }
-      // 构建回答文本（含来源）
-      let answer = result.answer || '(未获取到回答)';
-      const sources = result.sources || [];
-      if (sources.length > 0) {
-        const sourceList = [...new Set(sources)].map(s => '  📄 ' + s).join('\n');
-        answer += '\n\n— 参考文档 —\n' + sourceList;
-      }
+
+      const answer = result.answer || '(未获取到回答)';
+      // 兼容新旧格式：sources 可能是字符串数组或对象数组
+      const rawSources = result.sources || [];
+      const sources = rawSources.map(s =>
+        typeof s === 'string' ? { name: s, fileId: '', category: '' } : s
+      );
+
       this.setData({
-        messages: [...this.data.messages, { role: 'assistant', content: answer }],
+        messages: [...this.data.messages, {
+          role: 'assistant',
+          content: answer,
+          segments: this.parseSegments(answer),
+          sources
+        }],
         isLoading: false
       });
     }).catch(err => {
@@ -72,6 +95,62 @@ Page({
         messages: [...this.data.messages, { role: 'assistant', content: '❌ 请求失败，请稍后重试', isError: true }],
         isLoading: false
       });
+    });
+  },
+
+  // 点击回答中的 [N] 引用 → 滚动到参考文档区域
+  onCiteTap(e) {
+    const idx = e.currentTarget.dataset.idx;
+    const query = wx.createSelectorQuery();
+    query.select(`#source-${e.target.dataset.msgIndex || 0}`).boundingClientRect();
+    query.selectViewport().scrollOffset();
+    query.exec(res => {
+      if (res[0]) {
+        wx.pageScrollTo({ scrollTop: res[0].top + (res[1]?.scrollTop || 0) - 100, duration: 300 });
+      }
+    });
+  },
+
+  // 点击参考文档 → 直接预览文件
+  openSource(e) {
+    const { fileid, name } = e.currentTarget.dataset;
+    if (!fileid) {
+      wx.showToast({ title: '文件 ID 不可用', icon: 'none' });
+      return;
+    }
+
+    wx.showLoading({ title: '打开文件中...' });
+    const ext = (name || '').split('.').pop().toLowerCase();
+    const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext);
+
+    wx.cloud.getTempFileURL({ fileList: [fileid] }).then(res => {
+      const url = res.fileList[0]?.tempFileURL;
+      if (!url) {
+        wx.hideLoading();
+        wx.showToast({ title: '获取文件链接失败', icon: 'none' });
+        return;
+      }
+
+      if (isImage) {
+        wx.hideLoading();
+        wx.previewImage({ urls: [url] });
+        return;
+      }
+
+      wx.downloadFile({
+        url,
+        success: (d) => {
+          wx.hideLoading();
+          wx.openDocument({ filePath: d.tempFilePath, showMenu: true });
+        },
+        fail: () => {
+          wx.hideLoading();
+          wx.showToast({ title: '文件下载失败', icon: 'none' });
+        }
+      });
+    }).catch(() => {
+      wx.hideLoading();
+      wx.showToast({ title: '获取文件链接失败', icon: 'none' });
     });
   },
 

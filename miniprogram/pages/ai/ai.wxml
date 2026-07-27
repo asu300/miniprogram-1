@@ -16,10 +16,37 @@
   <!-- 消息列表 -->
   <scroll-view class="chat-scroll" scroll-y scroll-into-view="msg-bottom" scroll-with-animation>
     <view class="messages">
-      <view class="message-item {{item.role === 'user' ? 'msg-user' : 'msg-assistant'}}" wx:for="{{messages}}" wx:key="index">
-        <view class="bubble {{item.role === 'user' ? 'bubble-user' : 'bubble-assistant'}} {{item.isError ? 'bubble-error' : ''}}">
+      <view class="message-item {{item.role === 'user' ? 'msg-user' : 'msg-assistant'}}" wx:for="{{messages}}" wx:key="index" wx:for-index="msgIdx">
+
+        <!-- 用户消息 -->
+        <view wx:if="{{item.role === 'user'}}" class="bubble bubble-user">
           <text class="bubble-text">{{item.content}}</text>
         </view>
+
+        <!-- AI 回答 -->
+        <view wx:else class="bubble bubble-assistant {{item.isError ? 'bubble-error' : ''}}">
+          <!-- 分段渲染（文字 + 可点击引用 [N]） -->
+          <block wx:if="{{item.segments}}">
+            <text class="bubble-text">
+              <block wx:for="{{item.segments}}" wx:key="index">
+                <text wx:if="{{item.t === 'cite'}}" class="cite-num" data-idx="{{item.v}}" data-msg-index="{{msgIdx}}" bindtap="onCiteTap">[{{item.v}}]</text>
+                <text wx:else>{{item.v}}</text>
+              </block>
+            </text>
+          </block>
+          <text wx:else class="bubble-text">{{item.content}}</text>
+
+          <!-- 参考文档列表 -->
+          <view wx:if="{{item.sources && item.sources.length > 0}}" class="source-section" id="source-{{msgIdx}}">
+            <view class="source-divider"></view>
+            <view class="source-title">参考文档</view>
+            <view wx:for="{{item.sources}}" wx:key="index" class="source-item" bindtap="openSource" data-fileid="{{item.fileId}}" data-name="{{item.name}}">
+              <text class="source-badge">{{index + 1}}</text>
+              <text class="source-name" data-fileid="{{item.fileId}}">{{item.name}}</text>
+            </view>
+          </view>
+        </view>
+
       </view>
 
       <!-- 加载中 -->

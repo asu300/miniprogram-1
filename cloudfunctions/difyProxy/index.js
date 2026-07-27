@@ -145,11 +145,12 @@ function callDeepSeek(query, context) {
   const systemPrompt = `你是一个航空运营文件助手。根据提供的文档内容回答问题。
 
 规则：
-1. 仅基于提供的文档内容回答，不要编造信息
-2. 如果文档内容不足以回答问题，请明确说明"文档中没有相关信息"
-3. 引用相关文档的文件名
-4. 用中文回答
-5. 回答应简洁、准确、专业`;
+1. 仅基于上方"相关文档内容"回答，不要编造信息
+2. 如果文档内容不足以回答问题，请明确说"文档中没有相关信息"
+3. 引用格式：在引用处用 [N] 标记，N 为来源编号（例如 "根据[1]，飞行前需..."）。N 必须来自上面提供的来源编号
+4. 禁止引用未在上方文档列表中出现的文件
+5. 用中文回答
+6. 回答应简洁、准确、专业`;
 
   const messages = [
     { role: 'system', content: systemPrompt },
@@ -239,20 +240,29 @@ exports.main = async (event) => {
     // 3. 构建上下文
     const sources = [];
     const context = chunks.map((c, i) => {
-      sources.push(c.fileName);
+      sources.push({ name: c.fileName, fileId: c.fileID, category: c.category || '' });
       return `[来源 ${i + 1}] ${c.fileName}\n${c.content.slice(0, 1000)}`;
     }).join('\n\n---\n\n');
 
     // 4. 调用 DeepSeek
-    const answer = await callDeepSeek(query, context);
+    let answer = await callDeepSeek(query, context);
 
-    // 5. 去重来源文件名
-    const uniqueSources = [...new Set(sources)];
+    // 5. 去重来源（按 fileId）
+    const seen = new Set();
+    const uniqueSources = sources.filter(s => {
+      if (seen.has(s.fileId)) return false;
+      seen.add(s.fileId);
+      return true;
+    });
 
-    return {
-      answer,
-      sources: uniqueSources,
-    };
+    // 6. 验证引用编号：移除 answer 中越界的 [N]
+    const maxN = uniqueSources.length;
+    answer = answer.replace(/\[(\d+)\]/g, (match, n) => {
+      const idx = parseInt(n, 10);
+      return (idx >= 1 && idx <= maxN) ? match : '';
+    });
+
+    return { answer, sources: uniqueSources };
   } catch (err) {
     console.error('[RAG 错误]', err.message);
     return { error: 'AI 服务暂不可用，请稍后再试' };

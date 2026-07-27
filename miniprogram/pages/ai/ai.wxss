@@ -108,6 +108,70 @@
   white-space: pre-wrap;
 }
 
+/* ========== 引用标记 [N] ========== */
+.cite-num {
+  color: #1a73e8;
+  font-weight: bold;
+  padding: 0 2rpx;
+}
+
+/* ========== 参考文档区域 ========== */
+.source-section {
+  margin-top: 20rpx;
+}
+
+.source-divider {
+  height: 2rpx;
+  background: #e8e8e8;
+  margin-bottom: 16rpx;
+}
+
+.source-title {
+  font-size: 26rpx;
+  color: #999;
+  margin-bottom: 12rpx;
+}
+
+.source-item {
+  display: flex;
+  align-items: center;
+  padding: 16rpx 0;
+  border-bottom: 1rpx solid #f0f0f0;
+}
+
+.source-item:active {
+  background: #f5f8ff;
+  border-radius: 8rpx;
+  margin: 0 -8rpx;
+  padding: 16rpx 8rpx;
+}
+
+.source-badge {
+  width: 36rpx;
+  height: 36rpx;
+  background: #1a73e8;
+  color: white;
+  border-radius: 50%;
+  font-size: 22rpx;
+  text-align: center;
+  line-height: 36rpx;
+  flex-shrink: 0;
+  margin-right: 16rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.source-name {
+  font-size: 28rpx;
+  color: #1a73e8;
+  text-decoration: underline;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* ========== 加载动画 ========== */
 .loading-dots {
   display: flex;
