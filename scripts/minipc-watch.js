@@ -39,7 +39,28 @@ async function main() {
 
   let result = '';
 
-  if (cmd === 'process-pending') {
+  // "wechat:消息内容" → 通过飞书发到微信
+  if (cmd.startsWith('wechat:')) {
+    const msg = cmd.slice(7).trim();
+    console.log('[看门狗] 发微信:', msg);
+    const https = require('https');
+    const data = JSON.stringify({
+      msg_type: 'interactive',
+      card: {
+        header: { title: { tag: 'plain_text', content: '📡 主机消息' }, template: 'blue' },
+        elements: [{ tag: 'markdown', content: msg }]
+      }
+    });
+    const req = https.request({
+      hostname: 'open.feishu.cn',
+      path: '/open-apis/bot/v2/hook/de34c675-4511-4bf5-bd39-3fa7daea505e',
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' }
+    }, res => { console.log('[看门狗] 飞书状态:', res.statusCode); });
+    req.write(data); req.end();
+    result = '已发送微信消息: ' + msg;
+  }
+  else if (cmd === 'process-pending') {
     console.log('[看门狗] 开始处理...');
     result = run('node scripts/process-pending.js');
     console.log(result);
