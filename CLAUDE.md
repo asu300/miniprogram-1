@@ -62,3 +62,24 @@ zhengzhou_budapest, zhengzhou_bangalore, b747_ops, other_important, media_resour
 ### 管理模式
 
 连续点击列表页标题 3 次 → 弹出密码框 → 输入 `0000` 启用管理员模式（置顶/重命名/删除）。
+
+## Mini PC（远端 Windows 执行机）
+
+用于处理 AI 知识库文本提取等重任务，避免云函数 256MB 内存限制。
+
+### 通信方式
+- **GitHub 中转**：我向仓库推送 `triggers/run.txt`，Mini PC 定时任务拉取后执行
+- **微信后备**：Mini PC 上有微信，可通过用户转发消息
+
+### Mini PC 信息
+- **系统**：Windows
+- **项目路径**：`D:\docproc`（克隆自本仓库）
+- **看门狗脚本**：`scripts/minipc-watch.js`（定时任务运行，每 5 分钟 git pull 检查指令）
+- **处理脚本**：`scripts/process-pending.js`（下载 → 提取文本 → 分块 → 写回 doc_chunks）
+- **依赖**：`npm install @cloudbase/node-sdk mammoth pdf-parse`
+
+### 指令格式
+写入 `triggers/run.txt` 的内容：
+- `process-pending` — 处理待提取文件
+- `exec: node scripts/xxx.js` — 执行任意脚本
+- `shell: <命令>` — 执行 shell 命令
