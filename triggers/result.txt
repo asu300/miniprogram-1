@@ -1,11 +1,12 @@
 状态: 完成
-时间: 2026-07-27T15:09:08.682Z
+时间: 2026-07-27T15:14:08.648Z
 
-待处理文件: 33
+待处理文件: 32
 
 处理: 目视进近飞行管理方案.pdf
   空内容
 
-处理: AirDropManual-B747飞行机组操作手册_V3R5-Manual.pdf
-Warning: TT: undefined function: 32
-  748874 字 → 1727 片段
+处理: AirDropManual-GOM_运行总手册_V7R0-Manual.pdf
+Warning: TT: undefined function: 3
+Warning: TT: undefined function: 3
+  750788 字 → 1728 片段
