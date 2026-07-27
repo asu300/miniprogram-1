@@ -40,7 +40,7 @@ async function main() {
 
   console.log(`待处理文件: ${Object.keys(files).length}`);
 
-  if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+  if (!fs.existsSync(CONFIG.tmpDir)) fs.mkdirSync(CONFIG.tmpDir, { recursive: true });
 
   for (const [fileName, fileID] of Object.entries(files)) {
     const ext = path.extname(fileName).toLowerCase().replace('.', '');
@@ -49,7 +49,7 @@ async function main() {
     console.log(`\n处理: ${fileName}`);
 
     // 下载
-    const tmp = path.join(tmpDir, fileName);
+    const tmp = path.join(CONFIG.tmpDir, fileName);
     try {
       const res = await app.storage.downloadFile({ fileID, filePath: tmp });
       if (!res || !fs.existsSync(tmp)) { console.log(`  下载失败`); continue; }
