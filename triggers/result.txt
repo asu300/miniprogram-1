@@ -1,6 +1,83 @@
 状态: 完成
-时间: 2026-07-27T13:27:12.580Z
+时间: 2026-07-27T13:34:09.571Z
 
-待处理文件: 0
+待处理文件: 49
 
-全部完成
+处理: 目视进近飞行管理方案.pdf
+  空内容
+
+处理: 简缩字.pdf
+  52327 字 → 122 片段
+  ✅ 完成
+
+处理: CPDLC.pdf
+Warning: TT: undefined function: 21
+  1710 字 → 4 片段
+  ✅ 完成
+
+处理: 布达佩斯.pdf
+Warning: TT: undefined function: 3
+Warning: TT: undefined function: 5
+  7461 字 → 17 片段
+  ✅ 完成
+
+处理: 布达佩斯机场细则LY.docx
+  9250 字 → 22 片段
+  ✅ 完成
+
+处理: 布达佩斯几点需要注意的问题.pdf
+  988 字 → 3 片段
+  ✅ 完成
+
+处理: 郑州-布达佩斯航线应急程序汇总.pdf
+Warning: TT: undefined function: 3
+Warning: TT: undefined function: 21
+  6985 字 → 16 片段
+  ✅ 完成
+
+处理: 德里航线通讯特点.docx
+  943 字 → 2 片段
+  ✅ 完成
+
+处理: 中原龙浩B747机队-新德里航线总结.pdf
+  9854 字 → 23 片段
+  ✅ 完成
+
+处理: 德里机场细则.DOCX
+  1305 字 → 3 片段
+  ✅ 完成
+
+处理: 大型飞机公共航空运输承运人运行合格审定规则.pdf
+Warning: Required "glyf" table is not found -- trying to recover.
+  187494 字 → 428 片段
+  ✅ 完成
+
+处理: 关于更改欧洲区域无线电通信失效程序的运行提示.pdf
+Warning: TT: undefined function: 32
+  2711 字 → 7 片段
+  ✅ 完成
+
+处理: 中国民用航空规章第121部运行规范内容(3).pdf
+Warning: TT: undefined function: 32
+Warning: TT: undefined function: 3
+Warning: TT: undefined function: 32
+Warning: TT: undefined function: 3
+  84896 字 → 197 片段
+  ✅ 完成
+
+处理: B747-400F起飞限重手册使用说明R2.pdf
+  9819 字 → 23 片段
+  ✅ 完成
+
+处理: 列日航线开航准备会(1).pdf
+Warning: TT: undefined function: 21
+  4025 字 → 10 片段
+  ✅ 完成
+
+处理: 郑州 - ⾦奈航线⻜⾏指引及注意事项郭孝整理.pdf
+  3879 字 → 9 片段
+  ✅ 完成
+
+处理: AirDropManual-B747飞行机组操作手册_V3R5-Manual.pdf
+Warning: TT: undefined function: 32
+  748874 字 → 1727 片段
