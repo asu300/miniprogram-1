@@ -1,3 +1,5 @@
+const api = require('../../services/api');
+
 Page({
   data: {
     messages: [],
@@ -12,28 +14,20 @@ Page({
     const sys = wx.getSystemInfoSync();
     this.setData({
       statusBarHeight: sys.statusBarHeight || 44,
-      messages: [{
-        role: 'assistant',
-        content: '你好！我是 AI 知识库助手，你可以问我关于文件中资料的任何问题。'
-      }]
+      messages: [{ role: 'assistant', content: '你好！我是 AI 知识库助手，你可以问我关于文件中资料的任何问题。' }]
     });
   },
 
-  // 将回答文本解析为片段（普通文字 + 引用标记）
   parseSegments(text) {
     const segments = [];
     const re = /\[(\d+)\]/g;
     let last = 0, match;
     while ((match = re.exec(text)) !== null) {
-      if (match.index > last) {
-        segments.push({ t: 'text', v: text.slice(last, match.index) });
-      }
+      if (match.index > last) segments.push({ t: 'text', v: text.slice(last, match.index) });
       segments.push({ t: 'cite', v: parseInt(match[1], 10) });
       last = re.lastIndex;
     }
-    if (last < text.length) {
-      segments.push({ t: 'text', v: text.slice(last) });
-    }
+    if (last < text.length) segments.push({ t: 'text', v: text.slice(last) });
     return segments;
   },
 
@@ -48,21 +42,9 @@ Page({
 
     const userMsg = { role: 'user', content };
     const msgs = [...this.data.messages, userMsg];
-    this.setData({
-      messages: msgs,
-      inputValue: '',
-      canSend: false,
-      isLoading: true
-    });
+    this.setData({ messages: msgs, inputValue: '', canSend: false, isLoading: true });
 
-    wx.cloud.callFunction({
-      name: 'difyProxy',
-      data: {
-        query: content,
-        conversationId: this.data.conversationId
-      }
-    }).then(res => {
-      const result = res.result || {};
+    api.askAI(content).then(result => {
       if (result.error) {
         wx.showToast({ title: result.error, icon: 'none', duration: 3000 });
         this.setData({
@@ -73,7 +55,6 @@ Page({
       }
 
       const answer = result.answer || '(未获取到回答)';
-      // 兼容新旧格式：sources 可能是字符串数组或对象数组
       const rawSources = result.sources || [];
       const sources = rawSources.map(s =>
         typeof s === 'string' ? { name: s, fileId: '', category: '' } : s
@@ -81,10 +62,7 @@ Page({
 
       this.setData({
         messages: [...this.data.messages, {
-          role: 'assistant',
-          content: answer,
-          segments: this.parseSegments(answer),
-          sources
+          role: 'assistant', content: answer, segments: this.parseSegments(answer), sources
         }],
         isLoading: false
       });
@@ -98,40 +76,26 @@ Page({
     });
   },
 
-  // 点击回答中的 [N] 引用 → 滚动到参考文档区域
   onCiteTap(e) {
     const idx = e.currentTarget.dataset.idx;
     const query = wx.createSelectorQuery();
     query.select(`#source-${e.target.dataset.msgIndex || 0}`).boundingClientRect();
     query.selectViewport().scrollOffset();
     query.exec(res => {
-      if (res[0]) {
-        wx.pageScrollTo({ scrollTop: res[0].top + (res[1]?.scrollTop || 0) - 100, duration: 300 });
-      }
+      if (res[0]) wx.pageScrollTo({ scrollTop: res[0].top + (res[1]?.scrollTop || 0) - 100, duration: 300 });
     });
   },
 
-  // 点击参考文档 → 直接预览文件
   openSource(e) {
     const { fileid, name } = e.currentTarget.dataset;
-    if (fileid) {
-      this.previewFile(fileid, name);
-      return;
-    }
+    if (fileid) { this.previewFile(fileid, name); return; }
 
-    // fileId 为空时从数据库按文件名查找
     wx.showLoading({ title: '查找文件中...' });
-    wx.cloud.database().collection('files').where({ name }).limit(1).get().then(res => {
+    api.findFileByName(name).then(file => {
       wx.hideLoading();
-      if (res.data.length && res.data[0].fileID) {
-        this.previewFile(res.data[0].fileID, name);
-      } else {
-        wx.showToast({ title: '未找到文件', icon: 'none' });
-      }
-    }).catch(() => {
-      wx.hideLoading();
-      wx.showToast({ title: '查找失败', icon: 'none' });
-    });
+      if (file && file.fileID) this.previewFile(file.fileID, name);
+      else wx.showToast({ title: '未找到文件', icon: 'none' });
+    }).catch(() => { wx.hideLoading(); wx.showToast({ title: '查找失败', icon: 'none' }); });
   },
 
   previewFile(fileid, name) {
@@ -139,54 +103,30 @@ Page({
     const ext = (name || '').split('.').pop().toLowerCase();
     const isImage = ['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext);
 
-    wx.cloud.getTempFileURL({ fileList: [fileid] }).then(res => {
-      const url = res.fileList[0]?.tempFileURL;
-      if (!url) {
-        wx.hideLoading();
-        wx.showToast({ title: '获取文件链接失败', icon: 'none' });
-        return;
-      }
+    api.getFileURL(fileid).then(fr => {
+      const url = fr.tempFileURL || fr;
+      if (!url) { wx.hideLoading(); wx.showToast({ title: '获取文件链接失败', icon: 'none' }); return; }
 
-      if (isImage) {
-        wx.hideLoading();
-        wx.previewImage({ urls: [url] });
-        return;
-      }
+      if (isImage) { wx.hideLoading(); wx.previewImage({ urls: [url] }); return; }
 
       wx.downloadFile({
         url,
-        success: (d) => {
-          wx.hideLoading();
-          wx.openDocument({ filePath: d.tempFilePath, showMenu: true });
-        },
-        fail: () => {
-          wx.hideLoading();
-          wx.showToast({ title: '文件下载失败', icon: 'none' });
-        }
+        success: (d) => { wx.hideLoading(); wx.openDocument({ filePath: d.tempFilePath, showMenu: true }); },
+        fail: () => { wx.hideLoading(); wx.showToast({ title: '文件下载失败', icon: 'none' }); }
       });
-    }).catch(() => {
-      wx.hideLoading();
-      wx.showToast({ title: '获取文件链接失败', icon: 'none' });
-    });
+    }).catch(() => { wx.hideLoading(); wx.showToast({ title: '获取文件链接失败', icon: 'none' }); });
   },
 
-  goBack() {
-    wx.navigateBack();
-  },
+  goBack() { wx.navigateBack(); },
 
   clearChat() {
     wx.showModal({
-      title: '提示',
-      content: '确定清空对话记录？',
+      title: '提示', content: '确定清空对话记录？',
       success: (res) => {
         if (res.confirm) {
           this.setData({
-            messages: [{
-              role: 'assistant',
-              content: '你好！我是基于文件库的 AI 助手，你可以问我关于文件中资料的任何问题。'
-            }],
-            conversationId: '',
-            canSend: false
+            messages: [{ role: 'assistant', content: '你好！我是基于文件库的 AI 助手，你可以问我关于文件中资料的任何问题。' }],
+            conversationId: '', canSend: false
           });
         }
       }

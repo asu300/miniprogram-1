@@ -11,6 +11,8 @@ const CATEGORY_MAP = {
   media_resources: '音视频资料'
 };
 
+const api = require('../../services/api');
+
 Page({
   data: {
     searchKeyword: '',
@@ -23,23 +25,16 @@ Page({
   },
 
   screenWidth: 0,
-
-  onLoad() {
-    this.screenWidth = wx.getSystemInfoSync().windowWidth;
-  },
-
   aiHideTimer: null,
 
-  onShow() {
-    this.setData({ aiFloatExpanded: false });
-  },
+  onLoad() { this.screenWidth = wx.getSystemInfoSync().windowWidth; },
+
+  onShow() { this.setData({ aiFloatExpanded: false }); },
 
   onScroll(e) {
     const scrollLeft = e.detail.scrollLeft;
     const page = Math.round(scrollLeft / this.screenWidth);
-    if (page !== this.data.currentPage) {
-      this.setData({ currentPage: page });
-    }
+    if (page !== this.data.currentPage) this.setData({ currentPage: page });
   },
 
   goPage(e) {
@@ -47,22 +42,10 @@ Page({
     this.setData({ scrollLeft: page * this.screenWidth, currentPage: page });
   },
 
-  goList(e) {
-    const cat = e.currentTarget.dataset.cat;
-    wx.navigateTo({ url: `/pages/list/list?category=${cat}` });
-  },
-
-  goExercise() {
-    wx.navigateTo({ url: '/pages/exercise/exercise' });
-  },
-
-  goUpload() {
-    wx.navigateTo({ url: '/pages/upload/upload' });
-  },
-
-  goAi() {
-    wx.navigateTo({ url: '/pages/ai/ai' });
-  },
+  goList(e) { wx.navigateTo({ url: `/pages/list/list?category=${e.currentTarget.dataset.cat}` }); },
+  goExercise() { wx.navigateTo({ url: '/pages/exercise/exercise' }); },
+  goUpload() { wx.navigateTo({ url: '/pages/upload/upload' }); },
+  goAi() { wx.navigateTo({ url: '/pages/ai/ai' }); },
 
   showAiFloat() {
     if (this.aiHideTimer) clearTimeout(this.aiHideTimer);
@@ -70,9 +53,7 @@ Page({
   },
 
   hideAiFloat() {
-    this.aiHideTimer = setTimeout(() => {
-      this.setData({ aiFloatExpanded: false });
-    }, 600);
+    this.aiHideTimer = setTimeout(() => this.setData({ aiFloatExpanded: false }), 600);
   },
 
   onAiFloatTap() {
@@ -81,55 +62,33 @@ Page({
     wx.navigateTo({ url: '/pages/ai/ai' });
   },
 
-  onSearchInput(e) {
-    this.setData({ searchKeyword: e.detail.value });
-  },
+  onSearchInput(e) { this.setData({ searchKeyword: e.detail.value }); },
 
   onSearch() {
     const keyword = this.data.searchKeyword.trim();
-    if (!keyword) {
-      wx.showToast({ title: '请输入关键词', icon: 'none' });
-      return;
-    }
-    const escaped = keyword.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    if (!keyword) { wx.showToast({ title: '请输入关键词', icon: 'none' }); return; }
     this.setData({ isSearching: true, hasSearched: true });
 
-    const db = wx.cloud.database();
-    db.collection('files')
-      .where({
-        name: db.RegExp({ regexp: escaped, options: 'i' })
-      })
-      .limit(50)
-      .get()
-      .then(res => {
-        const results = res.data.map(item => ({
-          ...item,
-          categoryName: CATEGORY_MAP[item.category] || item.category,
-          icon: this._getFileIcon(item.name),
-          formattedTime: this._formatTime(item.createTime)
-        }));
-        this.setData({ searchResults: results, isSearching: false });
-      })
-      .catch(err => {
-        console.error('搜索失败:', err);
-        this.setData({ isSearching: false });
-        wx.showToast({ title: '搜索失败', icon: 'none' });
-      });
-  },
-
-  clearSearch() {
-    this.setData({
-      searchKeyword: '',
-      searchResults: [],
-      hasSearched: false
+    api.searchFiles(keyword).then(res => {
+      const results = (res.data || []).map(item => ({
+        ...item,
+        categoryName: CATEGORY_MAP[item.category] || item.category,
+        icon: this._getFileIcon(item.name),
+        formattedTime: this._formatTime(item.createTime)
+      }));
+      this.setData({ searchResults: results, isSearching: false });
+    }).catch(err => {
+      console.error('搜索失败:', err);
+      this.setData({ isSearching: false });
+      wx.showToast({ title: '搜索失败', icon: 'none' });
     });
   },
+
+  clearSearch() { this.setData({ searchKeyword: '', searchResults: [], hasSearched: false }); },
 
   goToResult(e) {
     const { category, fileid } = e.currentTarget.dataset;
-    wx.navigateTo({
-      url: `/pages/list/list?category=${category}&highlight=${fileid}`
-    });
+    wx.navigateTo({ url: `/pages/list/list?category=${category}&highlight=${fileid}` });
   },
 
   _getFileIcon(fileName) {
@@ -150,10 +109,5 @@ Page({
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
   },
 
-  onShareAppMessage() {
-    return {
-      title: '四分部资料大全',
-      path: '/pages/index/index'
-    };
-  }
+  onShareAppMessage() { return { title: '四分部资料大全', path: '/pages/index/index' }; }
 });

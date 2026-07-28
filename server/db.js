@@ -16,6 +16,7 @@ function createStore(name) {
 const stores = {
   files: createStore('files'),
   doc_chunks: createStore('doc_chunks'),
+  exercises: createStore('exercises'),
 };
 
 // promisify 常用方法
@@ -56,4 +57,5 @@ module.exports = {
   stores,
   files: promisifyStore(stores.files),
   doc_chunks: promisifyStore(stores.doc_chunks),
+  exercises: promisifyStore(stores.exercises),
 };
