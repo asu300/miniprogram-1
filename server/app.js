@@ -1,6 +1,5 @@
 const express = require('express');
 const cors = require('cors');
-const { connect } = require('./db');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -18,11 +17,6 @@ app.use('/api/files', require('./middleware/auth').authMiddleware, require('./ro
 // 健康检查
 app.get('/api/health', (req, res) => res.json({ status: 'ok', time: new Date().toISOString() }));
 
-connect().then(() => {
-  app.listen(PORT, () => {
-    console.log(`[Server] 四分部文件助手 运行在 http://localhost:${PORT}`);
-  });
-}).catch(err => {
-  console.error('[Server] 启动失败:', err.message);
-  process.exit(1);
+app.listen(PORT, () => {
+  console.log(`[Server] 四分部文件助手 运行在 http://localhost:${PORT}`);
 });

@@ -4,7 +4,7 @@
  */
 const express = require('express');
 const https = require('https');
-const DocChunk = require('../models/DocChunk');
+const { doc_chunks: DocChunks } = require('../db');
 const router = express.Router();
 
 // ===== 配置 =====
@@ -163,7 +163,6 @@ function extractKeywords(text) {
 async function searchChunks(keywords) {
   if (!keywords.length) return [];
 
-  // ponytail: 顺序搜索而非并行，避免 MongoDB 连接风暴；数据量小影响不大
   const chunkMap = new Map();
 
   for (const kw of keywords) {
@@ -173,18 +172,19 @@ async function searchChunks(keywords) {
     try {
       let docs;
       if (catKey) {
-        docs = await DocChunk.find({ category: catKey }).limit(SEARCH_LIMIT * 3).lean();
+        docs = await DocChunks.find({ category: catKey }, null, SEARCH_LIMIT * 3);
       } else {
         const regex = new RegExp(escaped, 'i');
-        docs = await DocChunk.find({
+        docs = await DocChunks.find({
           $or: [{ content: regex }, { fileName: regex }]
-        }).limit(SEARCH_LIMIT).lean();
+        }, null, SEARCH_LIMIT);
       }
 
       for (const doc of docs) {
-        const existing = chunkMap.get(doc._id.toString());
+        const id = doc._id.toString();
+        const existing = chunkMap.get(id);
         if (existing) { existing.score++; }
-        else { chunkMap.set(doc._id.toString(), { doc, score: 1 }); }
+        else { chunkMap.set(id, { doc, score: 1 }); }
       }
     } catch (e) {
       console.error(`[关键词搜索错误] ${kw}:`, e.message);
