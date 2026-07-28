@@ -64,11 +64,14 @@ function getFiles(category) {
   });
 }
 
-/** 获取文件临时链接（预览用） */
-function getFileURL(fileID) {
+/** 获取文件临时链接（预览用）
+ *  @param {string} fileID - 云 fileID（云端用）
+ *  @param {string} [docId] - NeDB _id（本地用，可选）
+ */
+function getFileURL(fileID, docId) {
   if (useLocal) {
-    // ponytail: 本地直接返回下载链接
-    return Promise.resolve({ tempFileURL: LOCAL_SERVER + '/api/files/download/' + fileID });
+    const id = docId || fileID;
+    return Promise.resolve({ tempFileURL: LOCAL_SERVER + '/api/files/download/' + encodeURIComponent(id) });
   }
   return new Promise((resolve, reject) => {
     wx.cloud.getTempFileURL({ fileList: [{ fileID, maxAge: 7200 }] })

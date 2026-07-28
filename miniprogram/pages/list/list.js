@@ -187,6 +187,7 @@ Page({
 
   previewFile(e) {
     const fileID = e.currentTarget.dataset.fileid;
+    const docID = e.currentTarget.dataset.id;
     if (!fileID) { wx.showToast({ title: '文件信息错误', icon: 'none' }); return; }
 
     let fileName = '';
@@ -196,7 +197,7 @@ Page({
     if (!fileName) { wx.showToast({ title: '文件名缺失', icon: 'none' }); return; }
 
     wx.showLoading({ title: '加载文件...' });
-    api.getFileURL(fileID).then(fr => {
+    api.getFileURL(fileID, docID).then(fr => {
       const tempUrl = fr.tempFileURL || fr;
       const ext = fileName.split('.').pop()?.toLowerCase();
 

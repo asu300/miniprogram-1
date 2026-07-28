@@ -93,12 +93,30 @@ router.delete('/:id', auth, async (req, res) => {
 // 下载/预览文件
 router.get('/download/:id', async (req, res) => {
   try {
-    const doc = await Files.findOne({ _id: req.params.id });
+    // 支持用 _id 或 fileID 查找
+    let doc = await Files.findOne({ _id: req.params.id });
+    if (!doc) doc = await Files.findOne({ fileID: req.params.id });
     if (!doc) return res.status(404).json({ error: '文件不存在' });
 
     const filePath = path.join(UPLOAD_DIR, doc.fileID);
-    if (!fs.existsSync(filePath)) return res.status(404).json({ error: '文件未找到' });
-    res.download(filePath, doc.name);
+    if (fs.existsSync(filePath)) return res.download(filePath, doc.name);
+
+    // 本地没有 → 从云存储代理
+    try {
+      const cloudbase = require('@cloudbase/node-sdk');
+      const app = cloudbase.init({
+        secretId: process.env.TCB_SECRET_ID || 'AKIDOzPbZAg06ynRtHVUXWP6h7kCRZjiV4Wu',
+        secretKey: process.env.TCB_SECRET_KEY || 'DLPOBj3MWbcXX6TM6eyEI7h3GHAsLZpu',
+        env: process.env.TCB_ENV_ID || 'cloud1-3ggl1ttiaa22fb3e',
+      });
+      const result = await app.storage().getTempFileURL([doc.fileID]);
+      const info = result.fileList?.[0];
+      if (info?.status === 0 && info.tempFileURL) {
+        return res.redirect(info.tempFileURL);
+      }
+    } catch (e) { console.error('[下载] 云代理失败:', e.message); }
+
+    res.status(404).json({ error: '文件未找到' });
   } catch (e) { res.status(500).json({ error: e.message }); }
 });
 
