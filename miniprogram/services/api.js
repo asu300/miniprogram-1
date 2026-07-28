@@ -3,8 +3,8 @@
  * useLocalServer = false → 走微信云开发（现有逻辑）
  * useLocalServer = true  → 连 Mini PC 本地服务器
  */
-const LOCAL_SERVER = 'http://localhost:3000';
-let useLocal = false;
+const LOCAL_SERVER = 'http://q8d6a667.natappfree.cc';
+let useLocal = true;
 let token = '';
 
 // ─── 存储登录凭证 ──────────────────────────────────────────
@@ -231,6 +231,56 @@ function uploadMultiple(tempFiles, category) {
   return Promise.reject(new Error('请使用 upload.js 原有上传逻辑'));
 }
 
+// ==================== 文件缓存 ====================
+
+const CACHE_KEY = 'file_cache';
+
+function _getCache() {
+  try { return wx.getStorageSync(CACHE_KEY) || {}; } catch { return {}; }
+}
+function _setCache(m) {
+  try { wx.setStorageSync(CACHE_KEY, m); } catch {}
+}
+
+/** 检查文件是否已缓存（返回本地路径 or null） */
+function getCachedPath(fileID) {
+  const map = _getCache();
+  const p = map[fileID];
+  if (!p) return null;
+  try {
+    wx.getFileSystemManager().accessSync(p);
+    return p;
+  } catch {
+    delete map[fileID];
+    _setCache(map);
+    return null;
+  }
+}
+
+/** 下载文件并保存到永久缓存 */
+function downloadAndCache(fileID, url) {
+  return new Promise((resolve, reject) => {
+    wx.downloadFile({
+      url,
+      success: r => {
+        if (r.statusCode !== 200) return reject(new Error('下载失败'));
+        const fm = wx.getFileSystemManager();
+        const savePath = wx.env.USER_DATA_PATH + '/' + fileID;
+        fm.saveFile({ tempFilePath: r.tempFilePath, filePath: savePath,
+          success: () => {
+            const map = _getCache();
+            map[fileID] = savePath;
+            _setCache(map);
+            resolve(savePath);
+          },
+          fail: () => resolve(r.tempFilePath) // 保存失败至少用临时文件
+        });
+      },
+      fail: reject
+    });
+  });
+}
+
 // ==================== 登录（仅本地） ====================
 
 function login(phone, code) {
@@ -251,4 +301,5 @@ module.exports = {
   getExercises, getExerciseById,
   uploadFile, uploadMultiple,
   login,
+  getCachedPath, downloadAndCache,
 };

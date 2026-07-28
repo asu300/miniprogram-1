@@ -235,14 +235,26 @@ Page({
         return;
       }
 
-      wx.downloadFile({
-        url: tempUrl,
-        success: dRes => {
-          if (dRes.statusCode === 200) {
-            wx.openDocument({ filePath: dRes.tempFilePath, showMenu: true, success: () => wx.hideLoading(), fail: () => { wx.hideLoading(); wx.showToast({ title: this.isPPT(fileName) ? '请安装 WPS 或 PowerPoint' : '无法预览此文件', icon: 'none', duration: 3000 }); } });
-          } else { wx.hideLoading(); wx.showToast({ title: '下载失败', icon: 'none' }); }
-        },
-        fail: () => { wx.hideLoading(); wx.showToast({ title: '文件下载失败', icon: 'none', duration: 3000 }); }
+      // 文档类：检查缓存 → 下载并缓存 → 打开
+      const cached = api.getCachedPath(fileID);
+      if (cached) {
+        wx.openDocument({ filePath: cached, showMenu: true, success: () => wx.hideLoading(), fail: () => { wx.hideLoading(); wx.showToast({ title: '无法预览此文件', icon: 'none' }); } });
+        return;
+      }
+
+      api.downloadAndCache(fileID, tempUrl).then(localPath => {
+        wx.openDocument({ filePath: localPath, showMenu: true, success: () => wx.hideLoading(), fail: () => { wx.hideLoading(); wx.showToast({ title: this.isPPT(fileName) ? '请安装 WPS 或 PowerPoint' : '无法预览此文件', icon: 'none', duration: 3000 }); } });
+      }).catch(() => {
+        // fallback 到临时下载
+        wx.downloadFile({
+          url: tempUrl,
+          success: dRes => {
+            if (dRes.statusCode === 200) {
+              wx.openDocument({ filePath: dRes.tempFilePath, showMenu: true, success: () => wx.hideLoading(), fail: () => { wx.hideLoading(); wx.showToast({ title: this.isPPT(fileName) ? '请安装 WPS 或 PowerPoint' : '无法预览此文件', icon: 'none', duration: 3000 }); } });
+            } else { wx.hideLoading(); wx.showToast({ title: '下载失败', icon: 'none' }); }
+          },
+          fail: () => { wx.hideLoading(); wx.showToast({ title: '文件下载失败', icon: 'none', duration: 3000 }); }
+        });
       });
     }).catch(err => {
       wx.hideLoading();

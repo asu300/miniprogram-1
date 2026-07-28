@@ -3,6 +3,7 @@ const multer = require('multer');
 const path = require('path');
 const fs = require('fs');
 const { files: Files } = require('../db');
+const auth = require('../middleware/auth').authMiddleware;
 const router = express.Router();
 
 const UPLOAD_DIR = path.join(__dirname, '..', 'uploads');
@@ -41,7 +42,7 @@ router.get('/find', async (req, res) => {
 });
 
 // 上传文件
-router.post('/upload', upload.array('files'), async (req, res) => {
+router.post('/upload', auth, upload.array('files'), async (req, res) => {
   const { category } = req.body;
   if (!req.files || !req.files.length) return res.status(400).json({ error: '未选择文件' });
 
@@ -62,7 +63,7 @@ router.post('/upload', upload.array('files'), async (req, res) => {
 });
 
 // 更新文件（置顶/重命名）
-router.put('/:id', async (req, res) => {
+router.put('/:id', auth, async (req, res) => {
   try {
     const { isTop, topOrder, name } = req.body;
     const update = {};
@@ -75,7 +76,7 @@ router.put('/:id', async (req, res) => {
 });
 
 // 删除文件
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', auth, async (req, res) => {
   try {
     const doc = await Files.findOne({ _id: req.params.id });
     if (!doc) return res.status(404).json({ error: '文件不存在' });

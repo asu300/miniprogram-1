@@ -1,6 +1,6 @@
 {
   "miniVersion": "v2",
-  "name": "%name%",
+  "name": "四分部",
   "version": "0.0.1",
   "versionCode": 100,
   "i18nFilePath": "i18n",
@@ -19,19 +19,19 @@
       "xweb": false
     },
     "icons": {
-      "hdpi": "",
-      "xhdpi": "",
-      "xxhdpi": "",
-      "xxxhdpi": ""
+      "hdpi": "miniapp/android/nativeResources/res/icon_hdpi.png",
+      "xhdpi": "miniapp/android/nativeResources/res/icon_xhdpi.png",
+      "xxhdpi": "miniapp/android/nativeResources/res/icon_xxhdpi.png",
+      "xxxhdpi": "miniapp/android/nativeResources/res/icon_xxxhdpi.png"
     },
     "splashscreen": {
       "hdpi": "",
       "xhdpi": "",
       "xxhdpi": ""
     },
-    "enableVConsole": "open",
+    "enableVConsole": "closed",
     "privacy": {
-      "enable": true
+      "enable": false
     }
   },
   "mini-ios": {
@@ -45,7 +45,7 @@
       "WeAppLBS": false,
       "WeAppOthers": false
     },
-    "enableVConsole": "open",
+    "enableVConsole": "closed",
     "icons": {
       "mainIcon120": "",
       "mainIcon180": "",
