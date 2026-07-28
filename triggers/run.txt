@@ -1,1 +1,0 @@
-wechat:FinClip研究完了——小程序代码直接导入打包生成.apk/.ipa，个人免费版够用。iOS用9个人开发者+TestFlight分发(20人足够)，Android直接发.apk。蒲公英只做H5转APP不能用。下一步你下载FinClip Studio把代码导进去试试打包
