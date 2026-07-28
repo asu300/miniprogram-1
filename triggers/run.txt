@@ -1,1 +1,1 @@
-exec: node scripts/setup-natapp.js 8b14948f36258be5
+shell: pm2 restart app
