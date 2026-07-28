@@ -1,5 +1,5 @@
 状态: 完成
-时间: 2026-07-28T02:38:04.415Z
+时间: 2026-07-28T02:42:11.003Z
 
 待处理文件: 17
 
@@ -7,33 +7,3 @@
   空内容
 
 全部完成
-[Setup] ===== 开始搭建后端服务 =====
-
-[Setup] 安装依赖...
-up to date, audited 123 packages in 4s
-
-18 packages are looking for funding
-  run `npm fund` for details
-
-found 0 vulnerabilities
-
-[Setup] 检查 MongoDB...
-[Setup] 尝试自动安装 MongoDB...
-[Setup]  尝试 winget...
-[Setup]   winget 未成功，尝试下一个方法...
-[Setup]  尝试下载 MongoDB MSI...
-[Setup]   下载中（约 500MB，可能需要几分钟）...
-[Setup]   安装中...
-[Setup]   MSI 安装失败: Command failed: timeout /t 5 /nobreak >nul
-����: ��֧���������¶��������˳��˽��̡�
-
-
-[Setup] 安装 PM2...
-[Setup]  ✅ PM2 已安装
-
-[Setup] ❌ MongoDB 安装未成功，手动安装:
-  1. 打开 https://www.mongodb.com/try/download/community
-  2. 下载 Windows MSI，安装时勾选 "Install as Service"
-  3. 装完执行: cd D:\docproc\server && npx pm2 start app.js --name aviation-api
-
-[Setup] 结果已写入 C:\docproc\triggers\result.txt
