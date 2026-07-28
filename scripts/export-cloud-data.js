@@ -59,15 +59,28 @@ async function main() {
   }
   writeNeDB('doc_chunks.db', allChunks);
 
+  // 3. 导出 exercises
+  console.log('[Export] 导出 exercises 集合...');
+  let allExercises = [];
+  offset = 0;
+  while (true) {
+    const res = await db.collection('exercises').skip(offset).limit(limit).get();
+    allExercises = allExercises.concat(res.data);
+    if (res.data.length < limit) break;
+    offset += limit;
+  }
+  writeNeDB('exercises.db', allExercises);
+
   // 写结果
   const resultPath = path.join(__dirname, '..', 'triggers', 'result.txt');
   fs.writeFileSync(resultPath,
     `状态: 完成\n时间: ${new Date().toISOString()}\n\n` +
     `files: ${allFiles.length} 条\n` +
     `doc_chunks: ${allChunks.length} 条\n` +
+    `exercises: ${allExercises.length} 条\n` +
     `已写入 server/data/`, 'utf8');
 
-  console.log(`\n[Export] ✅ 完成: files=${allFiles.length}, doc_chunks=${allChunks.length}`);
+  console.log(`\n[Export] ✅ 完成: files=${allFiles.length}, doc_chunks=${allChunks.length}, exercises=${allExercises.length}`);
 }
 
 main().catch(e => {
